@@ -15,6 +15,14 @@
 
 困ったら Mattermost の「Bチーム NCT × RUNTEQハッカソン」チャンネルで質問してください。
 
+## タスク管理
+
+| リンク | 内容 |
+|---|---|
+| [カンバン（GitHub Projects）](https://github.com/users/hisaju/projects/8/views/2) | Issue の状況（Backlog / Ready / In Progress / Review / Done）。着手する Issue はここの Ready 列から選ぶ |
+| [マイルストーン](https://github.com/hisaju/task-breakdown/milestones) | MVP までのマイルストーンと期限 |
+| [エピック一覧](https://github.com/hisaju/task-breakdown/issues?q=is%3Aissue+label%3Aepic) | MVP までの大きな要件（エピック）と進み具合 |
+
 ## クイックスタート
 
 Docker Desktop と Git が入っていれば、次のコマンドで起動できます（詳しくは [開発環境の構築](docs/dev/setup.md)）。
