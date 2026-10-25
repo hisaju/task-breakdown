@@ -34,11 +34,12 @@
               <%# リンク（タイトル・期限・ステータス・進捗）とメニューは兄弟要素にする（リンクの中にボタンを入れない） %>
               <%# リンクの ::after をカード全面に広げ、余白を押しても S-4 へ移る（stretched link）。
                   メニューは DOM 上でリンクより後ろの positioned 要素なので、::after より前面に出る %>
-              <li class="relative flex items-center gap-4 rounded-xl border border-line bg-white px-5 py-5 transition hover:shadow-card"
+              <%# キーボードでリンクにフォーカスしたときは、リンクの範囲ではなくカード全体をリングで囲む（メニューへのフォーカスでは囲まない） %>
+              <li class="relative flex items-center gap-4 rounded-xl border border-line bg-white px-5 py-5 transition hover:shadow-card has-[>a:focus-visible]:ring-2 has-[>a:focus-visible]:ring-brand-dot"
                   data-done="<%= done %>" <%= "data-hidden-by-done" if done %> data-due-key="<%= due_key(task[:due]) %>">
                 <%# 期限も引き継ぐ（S-3 の datetime-local と同じ書式。期限なしは空の due で、S-4 は「期限なし」を表示する） %>
                 <%= link_to task_detail_mock_path(title: task[:title], status: task[:status], due: task[:due]&.strftime("%Y-%m-%dT%H:%M") || ""),
-                            class: "group flex min-w-0 flex-1 items-center gap-6 rounded-lg after:absolute after:inset-0 after:rounded-xl after:content-['']" do %>
+                            class: "group flex min-w-0 flex-1 items-center gap-6 rounded-lg focus-visible:ring-0 focus-visible:outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']" do %>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-3">
                       <%= render "shared/decomposition_status", status: task[:status] %>

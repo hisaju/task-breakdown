@@ -60,6 +60,35 @@ RSpec.describe "S-5 マイタスク", :js do
     %(Array.from(document.querySelectorAll("section li[data-done]")).find((li) => li.textContent.includes(#{title.to_json})))
   end
 
+  describe "キーボード操作" do
+    # カードの box-shadow に 2px のリングがあるか。カードは transition 付きなので、変化し終わるまで待つ
+    def expect_ring(element, present:)
+      page.document.synchronize do
+        shadow = page.evaluate_script("getComputedStyle(arguments[0]).boxShadow", element)
+        ringed = shadow.include?("0px 0px 0px 2px")
+        raise Capybara::ExpectationNotMet, "box-shadow: #{shadow}" unless ringed == present
+
+        true
+      end
+    end
+
+    it "行のリンクにフォーカスするとカード全体をリングで囲み、メニューへのフォーカスでは囲まない" do
+      card = row("見積もり作成")
+      expect_ring(card, present: false)
+
+      # キーボード操作（Tab）でのフォーカスにする（:focus-visible）
+      trigger_of("経費申請").click
+      page.send_keys(:escape)
+      page.send_keys(:tab)
+      expect(page).to have_css("section li[data-done] > a:focus", text: "見積もり作成")
+      expect_ring(card, present: true)
+
+      page.send_keys(:tab)
+      expect(trigger_of("見積もり作成")).to match_css(":focus")
+      expect_ring(card, present: false)
+    end
+  end
+
   describe "タスク詳細への遷移" do
     it "カードの余白（左右・上下の padding）を押しても S-4 へ移り、行の期限を引き継ぐ" do
       [ %w[8 r.height/2], %w[r.width/2 6], %w[r.width/3 r.height-6], %w[r.width-8 8] ].each do |x, y|

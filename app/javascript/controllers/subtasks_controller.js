@@ -42,7 +42,8 @@ export default class extends Controller {
     text.classList.toggle("text-muted", total > 0)
     text.classList.toggle("text-subtle", total === 0)
     root.querySelector("[data-task-progress-track]").hidden = total === 0
-    root.querySelector("[data-task-progress-bar]").style.width = `${total > 0 ? Math.floor((done * 100) / total) : 0}%`
+    // バー幅は _task_progress と同じく 100% を上限にする
+    root.querySelector("[data-task-progress-bar]").style.width = `${total > 0 ? Math.min(100, Math.floor((done * 100) / total)) : 0}%`
     if (total > 0) {
       root.setAttribute("role", "progressbar")
       root.setAttribute("aria-label", "進捗")

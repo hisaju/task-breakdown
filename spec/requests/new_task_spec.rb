@@ -46,4 +46,11 @@ RSpec.describe "S-3 タスクを作る（画面モック）" do
     expect(form.text).not_to include("⌘ + Enter で送信")
     expect(form["data-action"]).to include("keydown->prompt#submitOnShortcut")
   end
+
+  it "最大 200 文字であることを入力欄の下に表示し、入力欄の説明として読み上げる" do
+    textarea = form.at_css("textarea[name='title']")
+    hint = form.at_css("##{textarea['aria-describedby']}")
+
+    expect(hint.text.strip).to eq "200 文字まで"
+  end
 end

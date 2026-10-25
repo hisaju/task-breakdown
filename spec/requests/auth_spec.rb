@@ -71,6 +71,13 @@ RSpec.describe "S-1 ログイン・S-2 会員登録・規約ページ（画面�
       expect(consent.css("a").map { [ it["target"], it["rel"] ] }).to all(eq %w[_blank noopener])
       expect(html.css("a[href='#']")).to be_empty
     end
+
+    it "規約リンクが新しいタブで開くことを同意文の下に表示し、各リンクの説明として読み上げる" do
+      consent = field("terms").ancestors("label").first
+      notes = consent.css("a").map { html.at_css("##{it['aria-describedby']}")&.text&.strip }
+
+      expect(notes).to eq [ "（いずれも新しいタブで開きます）" ] * 2
+    end
   end
 
   describe "送信（保存・検証なし）" do
