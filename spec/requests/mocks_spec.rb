@@ -74,10 +74,10 @@ RSpec.describe "画面モック" do
 
     it "マイタスクの日付見出しは表示日から導出される" do
       travel_to(Time.zone.local(2026, 6, 20, 10, 0)) { get "/tasks" }
-      expect(html.css("section h2").map { it.text.strip }).to eq %w[今日 明日 6/27 期限なし]
+      expect(html.css("section h2").map { it.text.strip }).to eq %w[今日 明日 6/23 6/27 期限なし]
 
       travel_to(Time.zone.local(2026, 12, 31, 10, 0)) { get "/tasks" }
-      expect(html.css("section h2").map { it.text.strip }).to eq %w[今日 明日 1/7 期限なし]
+      expect(html.css("section h2").map { it.text.strip }).to eq %w[今日 明日 1/3 1/7 期限なし]
     end
   end
 
@@ -129,7 +129,7 @@ RSpec.describe "画面モック" do
       done_titles = rows.select { it["data-done"] == "true" }.map { it.at_css("a p.font-serif").text.strip }
       expect(done_titles).to eq [ "経費精算の締め確認" ]
       expect(rows.map { it["data-done"] }).to all(be_in(%w[true false]))
-      expect(rows.map { it["data-due-key"] }.uniq).to eq %w[today tomorrow 2026-06-27 none]
+      expect(rows.map { it["data-due-key"] }.uniq).to eq %w[today tomorrow 2026-06-23 2026-06-27 none]
     end
 
     it "全完了の親タスク「経費精算の締め確認」を 3/3 完了で表示する" do
