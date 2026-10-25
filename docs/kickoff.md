@@ -153,6 +153,8 @@ flowchart TD
 ## (8) タスク管理と運用ルール
 
 ### カンバン（GitHub Projects）
+[カンバンを開く](https://github.com/users/hisaju/projects/8/views/2)（マイルストーンは [Milestones](https://github.com/hisaju/task-breakdown/milestones)）
+
 | 列 | 意味 | 入れる人 |
 |---|---|---|
 | Backlog | アイデア・未整理 | 誰でも |

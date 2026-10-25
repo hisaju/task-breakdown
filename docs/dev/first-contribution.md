@@ -27,7 +27,7 @@ flowchart LR
 
 ## 2. Issue を選ぶ
 
-1. GitHub のリポジトリ → **Issues**（または Projects のカンバン）を開く
+1. [カンバン（GitHub Projects）](https://github.com/users/hisaju/projects/8/views/2) を開く（リポジトリの **Issues** からも探せる）
 2. **Ready** 列の Issue から担当を決め、Issue の右側 **Assignees** に自分を設定する
 3. Issue 本文の **受入条件（チェックリスト）** を読み、何ができれば完了かを確認する
    - 分からないことは、着手前に Issue のコメントかチャンネルで質問する
