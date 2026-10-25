@@ -1,0 +1,12 @@
+<%#
+  親タスクの進捗。「n/m 完了」とプログレスバー。サブタスクが無い（total 0）ときは「—」だけを出す（バーは hidden）。
+  バーの幅は 100% を上限にする。サブタスクがあるときはルートが role="progressbar"（aria-valuenow / aria-valuemax）になる。
+  画面上で完了数が変わる S-4 では subtasks_controller が同じ規則で書き換える（data-task-progress-* が目印）
+%>
+<% aria = total.positive? ? { label: "進捗", valuemin: 0, valuenow: done, valuemax: total } : {} %>
+<%= tag.div data: { task_progress: "" }, role: ("progressbar" if total.positive?), aria: do %>
+  <p class="<%= total.positive? ? "text-2xs text-muted" : "text-2xs text-subtle" %>" data-task-progress-text><%= total.positive? ? "#{done}/#{total} 完了" : "—" %></p>
+  <%= tag.div class: "mt-2 h-1.5 rounded-full bg-brand-soft", aria: { hidden: true }, hidden: total.zero?, data: { task_progress_track: "" } do %>
+    <div class="h-1.5 rounded-full bg-brand" style="width: <%= total.positive? ? [ done * 100 / total, 100 ].min : 0 %>%" data-task-progress-bar></div>
+  <% end %>
+<% end %>

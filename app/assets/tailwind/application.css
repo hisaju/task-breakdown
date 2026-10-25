@@ -1,19 +1,46 @@
 @import "tailwindcss";
 
-/* デザイントークン（Figma モック準拠） */
+/* デザイントークン（Figma モック準拠）。ビューでは 16 進数・rgba を直接書かず、ここのトークン名を使う */
 @theme {
   --font-sans: Inter, "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
   --font-serif: Georgia, "Yu Mincho", "Hiragino Mincho ProN", serif;
+
+  /* 文字サイズ。10px は補足・バッジ等の最小サイズ（これより小さい文字は使わない） */
+  --text-2xs: 10px;
 
   --color-ink: #202421;
   --color-muted: #767c76;
   --color-subtle: #9a9f99;
   --color-canvas: #f6f7f4;
   --color-line: #e3e6df;
+  --color-line-strong: #bbbeba; /* 完了チェックの丸枠など、線を強調するとき */
+  --color-line-dashed: #cfd4cc; /* 「タスクを追加」の破線枠 */
   --color-brand: #426349;
   --color-brand-hover: #3f6147;
   --color-brand-soft: #edf2eb;
   --color-brand-dot: #66866b;
   --color-accent-soft: #f8efe4;
   --color-accent: #9a6a34;
+  --color-danger: oklch(50.5% 0.213 27.518); /* 分解失敗・削除などの文字色 */
+  --color-danger-dot: oklch(57.7% 0.245 27.325); /* 分解失敗のステータス点 */
+  --color-danger-soft: #fbecea; /* エラー表示の背景 */
+  --color-avatar: #a7bba4;
+
+  --shadow-card: 0 8px 24px -12px rgba(32, 36, 33, 0.18); /* カードのホバー */
+  --shadow-float: 0 12px 40px -12px rgba(32, 36, 33, 0.12); /* 浮いたフォームカード */
+}
+
+/* キーボード操作時のフォーカス表示をリンク・ボタン全体で揃える。
+   白地・canvas 地でも見えるよう、非テキストのコントラスト 3:1 以上の brand-dot を使う */
+@layer base {
+  :where(a[href], button, [role="tab"], [role="menuitem"], [contenteditable="true"]):focus-visible {
+    @apply ring-2 ring-brand-dot;
+  }
+}
+
+/* 完了フィルタ・日付タブによる非表示。状態は data 属性だけで表し、見た目はここで一括して消す。
+   レイヤー外に置き、要素側の flex 等の表示ユーティリティより優先させる */
+[data-hidden-by-done],
+[data-hidden-by-tab] {
+  display: none;
 }

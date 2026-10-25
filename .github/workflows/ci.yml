@@ -96,8 +96,27 @@ jobs:
       - name: Prepare database
         run: bin/rails db:prepare
 
+      # system spec（:js）は cuprite で Chrome を動かす。ubuntu-latest に入っている Chrome を使う
+      - name: Locate Chrome for system specs
+        run: |
+          chrome_path="$(command -v google-chrome || true)"
+          if [ -z "$chrome_path" ]; then
+            echo "::error::google-chrome がランナーに見つかりません。system spec（:js）を実行できないため中断します"
+            exit 1
+          fi
+          echo "BROWSER_PATH=$chrome_path" >> "$GITHUB_ENV"
+          "$chrome_path" --version
+
       - name: Run RSpec
         run: bundle exec rspec
+
+      - name: Upload system spec screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: tmp/screenshots/
+          if-no-files-found: ignore
 
       - name: Upload coverage
         if: always()
