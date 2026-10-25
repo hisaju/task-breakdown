@@ -7,14 +7,14 @@
 </div>
 
 <%= form_with url: root_path, method: :get, data: { turbo: false },
-              class: "mt-9 w-full max-w-[420px] space-y-5 rounded-2xl border border-line bg-white p-8 shadow-[0_12px_40px_-12px_rgba(32,36,33,0.12)]" do %>
+              class: "mt-9 w-full max-w-[420px] space-y-5 rounded-2xl border border-line bg-white p-8 shadow-float" do %>
   <%= render "mocks/auth_field", id: "name", label: "お名前", type: "text", placeholder: "山田 優", autocomplete: "name" %>
   <%= render "mocks/auth_field", id: "email", label: "メールアドレス", type: "email", placeholder: "you@example.com", autocomplete: "email" %>
   <%= render "mocks/auth_field", id: "password", label: "パスワード", type: "password", autocomplete: "new-password", hint: "8文字以上で入力してください" %>
   <%= render "mocks/auth_field", id: "password_confirmation", label: "パスワード（確認）", type: "password", autocomplete: "new-password" %>
 
   <label class="flex items-start gap-2 text-[11px] text-muted">
-    <input type="checkbox" class="mt-0.5 h-3.5 w-3.5 rounded border-line accent-[#426349]">
+    <input type="checkbox" class="mt-0.5 h-3.5 w-3.5 rounded border-line accent-brand">
     <span><a href="#" class="text-brand underline-offset-2 hover:underline">利用規約</a>と<a href="#" class="text-brand underline-offset-2 hover:underline">プライバシーポリシー</a>に同意する</span>
   </label>
 

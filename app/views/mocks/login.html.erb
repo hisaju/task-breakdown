@@ -7,19 +7,19 @@
 </div>
 
 <%= form_with url: root_path, method: :get, data: { turbo: false },
-              class: "mt-9 w-full max-w-[420px] space-y-5 rounded-2xl border border-line bg-white p-8 shadow-[0_12px_40px_-12px_rgba(32,36,33,0.12)]" do %>
+              class: "mt-9 w-full max-w-[420px] space-y-5 rounded-2xl border border-line bg-white p-8 shadow-float" do %>
   <%= render "mocks/auth_field", id: "email", label: "メールアドレス", type: "email", placeholder: "you@example.com", autocomplete: "username" %>
   <div>
     <div class="flex items-center justify-between">
       <label for="password" class="block text-[11px] font-semibold text-ink/80">パスワード</label>
-      <a href="#" class="text-[10px] text-muted hover:text-brand">パスワードをお忘れですか？</a>
+      <a href="#" class="text-2xs text-muted hover:text-brand">パスワードをお忘れですか？</a>
     </div>
     <input id="password" name="password" type="password" autocomplete="current-password"
            class="mt-2 block w-full rounded-lg border border-line bg-white px-3.5 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft">
   </div>
 
   <label class="flex items-center gap-2 text-[11px] text-muted">
-    <input type="checkbox" class="h-3.5 w-3.5 rounded border-line accent-[#426349]">
+    <input type="checkbox" class="h-3.5 w-3.5 rounded border-line accent-brand">
     ログイン状態を保持する
   </label>
 
