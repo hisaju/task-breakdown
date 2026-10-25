@@ -1,21 +1,33 @@
 # Tasklet — AI タスク分解アプリ
 
 「見積もり作成」「起案書作成」のような大まかなタスクを入力すると、AI が実行できる手順（サブタスク）に分解し、期限から逆算して進められるようにするアプリです。
+仕事の進め方や所要時間をまだ予測しにくい新入社員が、ベテランのように段取りを組めることを目指しています。
 
-> 現在は**画面モック**の段階です。画面は固定データで表示しており、保存や AI 分解は行いません。
+> 現在は**画面モック**の段階です。画面は固定のサンプルデータで表示しており、保存や AI 分解はまだ行いません。
 
-## 必要なもの
-- Docker / Docker Compose
+## はじめての方へ
 
-## セットアップ
+開発に参加する方は、次の順番で進めてください。
+
+1. **[開発環境の構築](docs/dev/setup.md)** — Docker と Git の準備から、アプリの起動・テストの実行まで（初めてでも順番どおりに進めれば完了します）
+2. **[開発の進め方](docs/dev/first-contribution.md)** — Issue の選び方、ブランチ、コミット、Pull Request を出すまで
+3. **[キックオフ資料](docs/kickoff.md)** — プロダクトの目的、チームの役割、開発ルール
+
+困ったら Mattermost の「Bチーム NCT × RUNTEQハッカソン」チャンネルで質問してください。
+
+## クイックスタート
+
+Docker Desktop と Git が入っていれば、次のコマンドで起動できます（詳しくは [開発環境の構築](docs/dev/setup.md)）。
 
 ```bash
+git clone git@github.com:hisaju/task-breakdown.git
+cd task-breakdown
 docker compose build
 docker compose run --rm web bin/rails db:prepare
 docker compose up -d
 ```
 
-http://localhost:3000 を開きます。
+http://localhost:3000 を開きます。停止は `docker compose stop` です。
 
 | 画面 | URL |
 |---|---|
@@ -24,17 +36,57 @@ http://localhost:3000 を開きます。
 | タスク詳細 | http://localhost:3000/tasks/sample |
 | 会員登録 | http://localhost:3000/signup |
 | ログイン | http://localhost:3000/login |
+| 利用規約 | http://localhost:3000/terms |
+| プライバシーポリシー | http://localhost:3000/privacy |
 
-停止は `docker compose stop` です。
+## よく使うコマンド
 
-## 開発で使うコマンド
+Rails のコマンドは、パソコンで直接ではなく `docker compose run --rm web` を付けてコンテナの中で実行します。
 
 | 用途 | コマンド |
 |---|---|
 | テスト | `docker compose run --rm web bundle exec rspec` |
-| Lint | `docker compose run --rm web bin/rubocop` |
+| コードの書き方チェック | `docker compose run --rm web bin/rubocop` |
 | セキュリティ診断 | `docker compose run --rm web bin/brakeman` |
-| CSS の再ビルド | `docker compose run --rm css bin/rails tailwindcss:build` |
+| ログを見る | `docker compose logs -f web` |
+| CSS を作り直す | `docker compose run --rm css bin/rails tailwindcss:build` |
+
+ほかのコマンドとトラブル対処は [開発環境の構築](docs/dev/setup.md#6-よく使うコマンド) にまとめています。
 
 ## ドキュメント
-仕様・開発ルールは [docs/](docs/README.md) を参照してください。
+
+### 仕様
+
+| ドキュメント | 内容 |
+|---|---|
+| [キックオフ資料](docs/kickoff.md) | 目的とゴール、チームの役割、スケジュール、技術スタック、開発フロー、テスト方針、タスク管理、コミュニケーション |
+| [要件定義](docs/requirements.md) | ペルソナ、ユースケース、ユーザーストーリー、受入条件 |
+| [画面設計](docs/screens.md) | 画面一覧、画面遷移図、各画面の要素、画面モックで動く操作 |
+| [データ設計](docs/data-model.md) | ER 図、テーブル定義 |
+| [AI タスク分解の設計](docs/ai-decomposition.md) | 処理の流れ、プロンプト、出力形式、失敗時の挙動、品質評価 |
+
+### 開発者向け
+
+| ドキュメント | 内容 |
+|---|---|
+| [開発環境の構築](docs/dev/setup.md) | 必要なもの、起動、テスト、毎日の始め方、トラブル対処 |
+| [開発の進め方](docs/dev/first-contribution.md) | Issue → ブランチ → 実装 → コミット → Pull Request の手順 |
+| [CLAUDE.md](CLAUDE.md) | Claude Code で開発するときの前提（Claude Code が自動で読み込みます） |
+
+## 技術スタック
+
+Ruby 3.4 / Rails 8.1 / PostgreSQL 17 / Hotwire（Turbo・Stimulus）/ Tailwind CSS v4 / RSpec / Docker Compose
+
+## ディレクトリ構成（主なもの）
+
+```
+app/
+  controllers/        画面ごとの処理
+  views/              画面の HTML（ERB）
+  javascript/controllers/  画面の動き（Stimulus）
+  assets/tailwind/    色・文字などのデザイン設定
+config/routes.rb      URL と処理の対応
+spec/                 テスト（RSpec）
+docs/                 仕様書
+docs/dev/             開発者向けガイド
+```
