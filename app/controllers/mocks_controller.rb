@@ -32,7 +32,8 @@ class MocksController < ApplicationController
     @due = params.key?(:due) ? parse_due(params[:due]) : sample_parent_due
     @subtasks = detail_subtasks
     @autoplay = params[:autoplay] != "0"
-    @done_url = task_detail_mock_path(request.query_parameters.slice("title", "due").symbolize_keys.merge(status: "done"))
+    # 自動遷移先は title・due を引き継ぐ（見出しと同じく、文字列でない値は引き継がない）
+    @done_url = task_detail_mock_path({ title: string_param(:title), due: string_param(:due) }.compact.merge(status: "done"))
   end
 
   private

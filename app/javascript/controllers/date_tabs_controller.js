@@ -32,7 +32,10 @@ export default class extends Controller {
   }
 
   // ←→ で前後のタブへ（端で折り返す）、Home / End で先頭・末尾へ。移った先のタブをそのまま選ぶ
+  // 修飾キー付き（Alt+← の「戻る」など）はブラウザの操作に任せる
   navigate(event) {
+    if (event.altKey || event.metaKey || event.ctrlKey || event.shiftKey) return
+
     const tabs = this.tabTargets
     const index = tabs.indexOf(event.currentTarget)
     const next = {

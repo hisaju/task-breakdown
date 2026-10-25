@@ -41,6 +41,29 @@ export default class extends Controller {
     if (field.textContent.trim() === "" && field.childNodes.length > 0) field.replaceChildren()
   }
 
+  // 貼り付けは書式を落としたテキストだけを入れる（タスク名は 1 行なので改行を空白にする）
+  paste(event) {
+    event.preventDefault()
+    const field = event.currentTarget
+    let text = event.clipboardData?.getData("text/plain") ?? ""
+    if (field === this.titleTarget) text = text.replace(/\s*[\r\n]+\s*/g, " ").trim()
+
+    const selection = window.getSelection()
+    if (!selection.rangeCount || !field.contains(selection.anchorNode)) return
+
+    const range = selection.getRangeAt(0)
+    range.deleteContents()
+    const node = document.createTextNode(text)
+    range.insertNode(node)
+    range.setStartAfter(node)
+    range.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(range)
+    field.normalize()
+    // 入力と同じ扱いにする（タスク名なら読み上げ名を更新する）
+    field.dispatchEvent(new Event("input", { bubbles: true }))
+  }
+
   keepFocus() {
     if (this.element.checkVisibility()) return
 

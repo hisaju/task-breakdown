@@ -92,6 +92,13 @@ RSpec.describe "S-4 タスク詳細（画面モック）" do
       )
     end
 
+    it "文字列でない title は遷移先に引き継がない" do
+      get "/tasks/sample?status=decomposing&title[]=a&due=2026-06-21T15:00"
+
+      url = URI.parse(html.at_css("[data-controller~='decomposition-progress']")["data-decomposition-progress-url-value"])
+      expect(Rack::Utils.parse_query(url.query)).to eq("status" => "done", "due" => "2026-06-21T15:00")
+    end
+
     it "autoplay=0 では遷移しない設定になる" do
       get "/tasks/sample", params: { status: "decomposing", autoplay: "0" }
 

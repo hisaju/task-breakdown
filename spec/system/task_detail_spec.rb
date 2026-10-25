@@ -184,10 +184,36 @@ RSpec.describe "S-4 タスク詳細", :js do
 
       page.send_keys("仮の名前")
       expect(check_of("仮の名前")).to be_present
-      6.times { page.send_keys(:backspace) }
+      4.times { page.send_keys(:backspace) }
 
       expect(page.evaluate_script("document.querySelector(\"ol > li:last-child [data-subtask-card-target='title']\").matches(':empty')")).to be true
       expect(check_of("新しいタスク")["aria-label"]).to eq "「新しいタスク」を完了にする"
+    end
+
+    it "貼り付けは書式を落としたテキストだけを入れ、タスク名では改行を空白にする" do
+      visit "/tasks/sample"
+      click_on "タスクを追加"
+
+      paste = lambda do |target, plain|
+        page.execute_script(<<~JS, target, plain)
+          const field = document.querySelector(`ol > li:last-child [data-subtask-card-target='${arguments[0]}']`)
+          field.focus()
+          const data = new DataTransfer()
+          data.setData("text/html", "<b>太字</b><div>別の行</div>")
+          data.setData("text/plain", arguments[1])
+          field.dispatchEvent(new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }))
+        JS
+      end
+
+      paste.call("title", "見積もりを\n依頼する")
+      expect(added_title.text).to eq "見積もりを 依頼する"
+      expect(page.evaluate_script("document.querySelector(\"ol > li:last-child [data-subtask-card-target='title']\").innerHTML"))
+        .to eq "見積もりを 依頼する"
+      expect(check_of("見積もりを 依頼する")["aria-label"]).to eq "「見積もりを 依頼する」を完了にする"
+
+      paste.call("description", "1 行目\n2 行目")
+      expect(page.evaluate_script("document.querySelector(\"ol > li:last-child [data-subtask-card-target='description']\").innerHTML"))
+        .to eq "1 行目\n2 行目"
     end
 
     it "既存のカードのタスク名は編集できない" do
@@ -387,6 +413,23 @@ RSpec.describe "S-4 タスク詳細", :js do
 
       tabindexes = all("[role='tab']").map { it["tabindex"] }
       expect(tabindexes).to eq %w[0 -1 -1 -1]
+    end
+
+    it "修飾キー付きの ←→（Alt+← の「戻る」など）はブラウザの操作に任せ、タブを動かさない" do
+      visit "/tasks/sample"
+      tab("すべて").click
+
+      %i[alt control meta shift].each do |modifier|
+        page.send_keys([ modifier, :right ])
+        expect(selected_tab).to eq "すべて"
+      end
+      expect(page.evaluate_script(<<~JS)).to be false
+        (() => {
+          const event = new KeyboardEvent("keydown", { key: "ArrowLeft", altKey: true, bubbles: true, cancelable: true })
+          document.getElementById("date-tab-all").dispatchEvent(event)
+          return event.defaultPrevented
+        })()
+      JS
     end
 
     it "タスクを追加すると「すべて」に戻り、追加したカード（期限は今日）が見える" do

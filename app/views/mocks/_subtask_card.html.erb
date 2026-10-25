@@ -34,10 +34,10 @@
       <%= tag.p class: class_names("mt-2.5 text-[13px] font-semibold group-data-[done=true]:text-muted group-data-[done=true]:line-through", placeholder_class),
                 contenteditable: "true", role: "textbox", aria: { label: "タスク名", placeholder: "タスク名を入力" },
                 data: { placeholder: "タスク名を入力", subtask_card_target: "title",
-                        action: "input->subtask-card#rename keydown.enter->subtask-card#finishTitle" } %>
-      <%= tag.p class: class_names("mt-2 text-2xs text-muted", placeholder_class),
+                        action: "input->subtask-card#rename keydown.enter->subtask-card#finishTitle paste->subtask-card#paste" } %>
+      <%= tag.p class: class_names("mt-2 whitespace-pre-wrap text-2xs text-muted", placeholder_class),
                 contenteditable: "true", role: "textbox", aria: { label: "補足", placeholder: "補足を入力（任意）", multiline: "true" },
-                data: { placeholder: "補足を入力（任意）", subtask_card_target: "description", action: "input->subtask-card#clearIfBlank" } %>
+                data: { placeholder: "補足を入力（任意）", subtask_card_target: "description", action: "input->subtask-card#clearIfBlank paste->subtask-card#paste" } %>
     <% else %>
       <p class="mt-2.5 text-[13px] font-semibold group-data-[done=true]:text-muted group-data-[done=true]:line-through" data-subtask-card-target="title"><%= subtask[:title] %></p>
       <p class="mt-2 text-2xs text-muted"><%= subtask[:description] %></p>
