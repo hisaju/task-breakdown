@@ -39,6 +39,14 @@ RSpec.describe "shared/_menu" do
     expect(doc.css("[role='menuitem']").map { it["tabindex"] }).to all(eq "-1")
   end
 
+  it "見た目のみの項目は押すとメニューを閉じ、フォーカスが外へ出ても閉じる" do
+    render partial: "shared/menu", locals: { id: "m", items: }
+
+    expect(doc.css("[data-mock='noop']").map { it["data-action"] }).to all(eq "menu#closeAndFocus")
+    expect(doc.at_css("a[role='menuitem']")["data-action"]).to be_nil
+    expect(doc.at_css("[data-controller='menu']")["data-action"]).to include("focusout->menu#closeOnFocusOut")
+  end
+
   it "placement で下向き（既定）と上向きを切り替える" do
     render partial: "shared/menu", locals: { id: "down", items: }
     expect(doc.at_css("#down")["class"]).to include("top-full")

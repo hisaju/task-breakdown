@@ -1,13 +1,13 @@
 <%#
   メニュー「…」。locals:
     id:        メニュー本体の id（トリガーの aria-controls と対応。画面内で一意にする）
-    items:     [{ label:, href: nil, danger: false }]。href があればリンク、無ければ見た目のみのボタン（data-mock="noop"）
+    items:     [{ label:, href: nil, danger: false }]。href があればリンク、無ければ見た目のみのボタン（data-mock="noop"。押すとメニューを閉じる）
     placement: :down（既定。トリガーの下に開く）| :up（上に開く。画面下部に置くとき）
-    label:     トリガーの aria-label（既定「メニュー」）
+    label:     トリガーの aria-label（既定「メニュー」）。一覧で繰り返すときは対象名を入れる（例:「『〜』のメニュー」）
 %>
 <% placement = local_assigns.fetch(:placement, :down).to_sym %>
 <div class="relative" data-controller="menu"
-     data-action="click@window->menu#closeOnOutside keydown.esc->menu#closeAndFocus">
+     data-action="click@window->menu#closeOnOutside keydown.esc->menu#closeAndFocus focusout->menu#closeOnFocusOut">
   <button type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="<%= id %>"
           aria-label="<%= local_assigns.fetch(:label, "メニュー") %>"
           class="grid h-7 w-7 place-items-center rounded-md text-subtle hover:bg-canvas hover:text-ink"
@@ -23,7 +23,7 @@
       <% if item[:href] %>
         <%= link_to item[:label], item[:href], role: "menuitem", tabindex: -1, class: item_class %>
       <% else %>
-        <button type="button" role="menuitem" tabindex="-1" data-mock="noop" class="<%= item_class %>"><%= item[:label] %></button>
+        <button type="button" role="menuitem" tabindex="-1" data-mock="noop" data-action="menu#closeAndFocus" class="<%= item_class %>"><%= item[:label] %></button>
       <% end %>
     <% end %>
   </div>
