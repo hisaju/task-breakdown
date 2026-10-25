@@ -8,3 +8,4 @@
 | [ci.md](ci.md) | CI の構成と落ちたときの見方、flaky（Google Fonts 待ちのタイムアウト。遮断済み） |
 | [review.md](review.md) | レビュー指摘の型（コントラスト 3:1、状態は data 属性に一本化、子間の属性受け渡し、空状態の理由別、繰り返し部品の a11y 名） |
 | [domain.md](domain.md) | 業務ドメイン（タスク分解）の前提 |
+| [planning.md](planning.md) | エピック分解の反省（画面系は画面単位で束ねる、落穂の型 4 点、申し送りは子 Issue へ） |
