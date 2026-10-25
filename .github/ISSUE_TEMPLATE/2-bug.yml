@@ -1,0 +1,52 @@
+name: 不具合報告
+description: 期待どおりに動かないもの
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 起きていること
+      description: エラーメッセージは画像ではなく文字をコピーして貼ってください
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      value: |
+        1. 
+        2. 
+        3. 
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動き
+    validations:
+      required: true
+  - type: dropdown
+    id: env
+    attributes:
+      label: 発生した環境
+      options:
+        - ローカル（Docker）
+        - 本番（Render）
+        - CI（GitHub Actions）
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: ログ・スクリーンショット
+      description: "`docker compose logs -f web` の出力や画面のスクリーンショット"
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受入条件
+      value: |
+        - [ ] 上記の再現手順で期待どおりに動く
+        - [ ] 再発防止のテストがある
+    validations:
+      required: true

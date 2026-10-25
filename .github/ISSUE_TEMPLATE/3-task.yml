@@ -1,0 +1,36 @@
+name: タスク（ドキュメント・設定・リファクタ）
+description: 機能追加でも不具合でもない作業
+title: "[task] "
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 種類
+      options:
+        - ドキュメント
+        - 設定・インフラ
+        - リファクタ
+        - テスト
+        - その他
+    validations:
+      required: true
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 目的
+    validations:
+      required: true
+  - type: textarea
+    id: todo
+    attributes:
+      label: やること
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: 完了条件
+      value: |
+        - [ ] 
+    validations:
+      required: true

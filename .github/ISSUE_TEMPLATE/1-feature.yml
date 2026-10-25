@@ -1,0 +1,69 @@
+name: 機能開発
+description: エピックの子 Issue など、1 つの関心事の機能追加・変更
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        1 つの Issue は半日〜1 日で終わる大きさにします。大きすぎるときはエピックにして分解してください。
+        受入条件は「テストや画面で確認できる文」で書きます。
+  - type: input
+    id: epic
+    attributes:
+      label: 親エピック
+      description: エピックの子 Issue なら `Epic #番号` と書きます（例: Epic #22）。エピックに属さない場合は「なし」
+      placeholder: "Epic #22"
+    validations:
+      required: true
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 背景・目的
+      description: なぜ必要か。関連するユースケース（docs/requirements.md の UC-x）があれば書きます
+      placeholder: |
+        UC-7 会員登録・ログイン。未ログインのユーザーが自分のタスクだけを扱えるようにする。
+    validations:
+      required: true
+  - type: textarea
+    id: todo
+    attributes:
+      label: やること
+      placeholder: |
+        - User モデルと会員登録画面
+        - ログイン後は S-3 へ遷移
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受入条件
+      description: 何ができれば完了か。tester とレビュアーはこの項目で合否を判定します
+      value: |
+        - [ ] AC-1:
+        - [ ] AC-2:
+    validations:
+      required: true
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: 対象外
+      description: 今回やらないこと（別 Issue に回すもの）
+      placeholder: "- パスワード再設定（拡張）"
+  - type: textarea
+    id: refs
+    attributes:
+      label: 参考
+      description: 関係する仕様書・画面・Issue
+      placeholder: |
+        - 画面: docs/screens.md の S-2
+        - データ: docs/data-model.md の users
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: 影響範囲
+      description: 当てはまるものにチェックします（レビュー観点の判断に使います）
+      options:
+        - label: 認証・認可・個人情報・シークレットに関わる（セキュリティレビュー対象）
+        - label: DB のテーブル・カラムを追加・変更する（マイグレーションあり）
+        - label: 仕様書（docs/）の更新が必要

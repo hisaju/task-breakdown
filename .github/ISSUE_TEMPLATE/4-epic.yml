@@ -1,0 +1,51 @@
+name: エピック
+description: 複数の Issue に分解して進める大きな要件
+title: "[epic] "
+labels: ["epic"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        エピックは着手時に子 Issue へ分解します（docs/kickoff.md の (6) 開発フロー）。
+        子 Issue を起票したら、下の「子 Issue」にチェックリストで追記してください。
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 目的
+    validations:
+      required: true
+  - type: input
+    id: uc
+    attributes:
+      label: 対象ユースケース
+      description: docs/requirements.md の UC 番号
+      placeholder: "UC-1, UC-5, UC-6"
+  - type: textarea
+    id: include
+    attributes:
+      label: 含むもの
+    validations:
+      required: true
+  - type: textarea
+    id: exclude
+    attributes:
+      label: 含まないもの
+  - type: textarea
+    id: done
+    attributes:
+      label: 完了条件
+      value: |
+        - [ ] 
+    validations:
+      required: true
+  - type: textarea
+    id: deps
+    attributes:
+      label: 依存
+      description: 先に終わっている必要があるエピック
+      placeholder: "- #22"
+  - type: textarea
+    id: children
+    attributes:
+      label: 子 Issue
+      value: （分解時に追記）
