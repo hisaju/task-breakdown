@@ -27,7 +27,7 @@ class MocksController < ApplicationController
 
   # モック用クエリ: ?title= ?status= ?due= ?all_done=1 ?autoplay=0（説明は .claude/knowledge/repo.md）
   def task_detail
-    @title = params[:title].presence || SAMPLE_PARENT_TITLE
+    @title = string_param(:title).presence || SAMPLE_PARENT_TITLE
     @status = params[:status].presence_in(DECOMPOSITION_STATUSES)&.to_sym || :done
     @due = params.key?(:due) ? parse_due(params[:due]) : sample_parent_due
     @subtasks = detail_subtasks
@@ -89,6 +89,12 @@ class MocksController < ApplicationController
     sample_parent_tasks.find { it[:title] == SAMPLE_PARENT_TITLE }[:due]
   end
 
+  # クエリの値を文字列として読む。?title[]=a のような配列・ハッシュは無いものとして扱う
+  def string_param(key)
+    value = params[key]
+    value.is_a?(String) ? value : nil
+  end
+
   # ?due= は ISO 8601 の日時（S-3 の datetime-local の値。例: 2026-06-20T17:00）だけを受け付け、それ以外は期限なし
   def parse_due(value)
     Time.zone.iso8601(value.to_s)
@@ -96,9 +102,9 @@ class MocksController < ApplicationController
     nil
   end
 
-  # 「タスクを追加」で末尾に足すカードの初期値
+  # 「タスクを追加」で末尾に足すカードの初期値。タスク名・補足は空で、追加直後に入力する（editable: true）
   def new_subtask
-    { kind: :basic, due: today_at(17), done: false, title: "新しいタスク", description: "クリックして内容を編集" }
+    { kind: :basic, due: today_at(17), done: false, title: "", description: "", editable: true }
   end
 
   def today_at(hour)
