@@ -60,6 +60,28 @@ RSpec.describe "S-5 マイタスク", :js do
     %(Array.from(document.querySelectorAll("section li[data-done]")).find((li) => li.textContent.includes(#{title.to_json})))
   end
 
+  describe "キーボード操作" do
+    def box_shadow(element)
+      page.evaluate_script("getComputedStyle(arguments[0]).boxShadow", element)
+    end
+
+    it "行のリンクにフォーカスするとカード全体をリングで囲み、メニューへのフォーカスでは囲まない" do
+      card = row("見積もり作成")
+      expect(box_shadow(card)).to eq "none"
+
+      # キーボード操作（Tab）でのフォーカスにする（:focus-visible）
+      trigger_of("経費申請").click
+      page.send_keys(:escape)
+      page.send_keys(:tab)
+      expect(page).to have_css("section li[data-done] > a:focus", text: "見積もり作成")
+      expect(box_shadow(card)).not_to eq "none"
+
+      page.send_keys(:tab)
+      expect(trigger_of("見積もり作成")).to match_css(":focus")
+      expect(box_shadow(card)).to eq "none"
+    end
+  end
+
   describe "タスク詳細への遷移" do
     it "カードの余白（左右・上下の padding）を押しても S-4 へ移り、行の期限を引き継ぐ" do
       [ %w[8 r.height/2], %w[r.width/2 6], %w[r.width/3 r.height-6], %w[r.width-8 8] ].each do |x, y|
