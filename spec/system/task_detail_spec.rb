@@ -25,13 +25,22 @@ RSpec.describe "S-4 タスク詳細", :js do
   end
 
   describe "分解中からの自動遷移" do
-    it "分解中で開くと 5 秒以内に分解完了とサブタスクが表示され、戻るで分解中に戻らない" do
+    # 待ち時間に頼らないよう、遷移までの時間（既定 3 秒）を短く上書きしてから検証する
+    def shorten_delay(milliseconds)
+      page.execute_script(<<~JS)
+        document.querySelector("[data-controller~='decomposition-progress']")
+          .setAttribute("data-decomposition-progress-delay-value", "#{milliseconds}")
+      JS
+    end
+
+    it "分解中で開くと、一定時間後に分解完了とサブタスクが表示され、戻るで分解中に戻らない" do
       visit "/tasks"
       visit "/tasks/sample?status=decomposing&title=#{CGI.escape('経費申請')}"
       expect(page).to have_css("[data-decomposition-status='decomposing']")
       expect(page).to have_css("[data-skeleton]")
 
-      expect(page).to have_css("[data-decomposition-status='done']", wait: 5)
+      shorten_delay(100)
+      expect(page).to have_css("[data-decomposition-status='done']")
       expect(page).to have_text("目的と読み手を整理する")
       expect(page).to have_css("h1", text: "経費申請")
       expect(page).to have_no_css("[data-skeleton]")
@@ -40,11 +49,12 @@ RSpec.describe "S-4 タスク詳細", :js do
       expect(page).to have_current_path("/tasks")
     end
 
-    it "autoplay=0 では分解中のまま遷移しない" do
+    it "autoplay=0 では、遷移までの時間を過ぎても分解中のまま遷移しない" do
       visit "/tasks/sample?status=decomposing&autoplay=0"
       expect(page).to have_css("[data-decomposition-status='decomposing']")
 
-      sleep 3.5
+      shorten_delay(50)
+      sleep 0.5
       expect(page).to have_css("[data-decomposition-status='decomposing']")
       expect(page).to have_current_path("/tasks/sample?status=decomposing&autoplay=0")
     end
@@ -115,6 +125,14 @@ RSpec.describe "S-4 タスク詳細", :js do
   end
 
   describe "タスクを追加" do
+    def added_title
+      find("ol > li:last-child [data-subtask-card-target='title'][contenteditable='true']")
+    end
+
+    def added_description
+      find("ol > li:last-child [data-subtask-card-target='description'][contenteditable='true']")
+    end
+
     it "3 回追加すると番号が続き、id が重複せず、追加カードのメニューも開ける" do
       visit "/tasks/sample"
 
@@ -130,6 +148,53 @@ RSpec.describe "S-4 タスク詳細", :js do
       find("button[aria-controls='subtask-menu-09']").click
       expect(page).to have_css("#subtask-menu-09 [role='menuitem']", text: "期限設定")
       expect(progress_text).to eq "1/9 完了"
+    end
+
+    it "追加直後にタスク名へフォーカスし、入力したタスク名を完了チェックとメニューの読み上げに反映する" do
+      visit "/tasks/sample"
+      click_on "タスクを追加"
+
+      expect(page).to have_css("ol > li:last-child [data-subtask-card-target='title']:focus")
+      expect(added_title["data-placeholder"]).to eq "タスク名を入力"
+      expect(check_of("新しいタスク")["aria-label"]).to eq "「新しいタスク」を完了にする"
+      expect(page).to have_css("button[aria-controls='subtask-menu-07'][aria-label='「新しいタスク」のメニュー']")
+
+      page.send_keys("見積もりを依頼する")
+      expect(added_title.text).to eq "見積もりを依頼する"
+      expect(check_of("見積もりを依頼する")["aria-label"]).to eq "「見積もりを依頼する」を完了にする"
+      expect(page).to have_css("button[aria-controls='subtask-menu-07'][aria-label='「見積もりを依頼する」のメニュー']")
+
+      # Enter は改行せず補足の入力へ移る
+      page.send_keys(:enter)
+      expect(added_title.text).to eq "見積もりを依頼する"
+      expect(page).to have_css("ol > li:last-child [data-subtask-card-target='description']:focus")
+      page.send_keys("仕入れ先 2 社に依頼する")
+      expect(added_description.text).to eq "仕入れ先 2 社に依頼する"
+
+      # 完了にすると入力したタスク名で「未完了に戻す」になる
+      click_on "完了済みを表示"
+      check_of("見積もりを依頼する").click
+      expect(check_of("見積もりを依頼する")["aria-label"]).to eq "「見積もりを依頼する」を未完了に戻す"
+      expect(line_through?("見積もりを依頼する")).to be true
+    end
+
+    it "タスク名を消すと、プレースホルダが出て読み上げ名も「新しいタスク」に戻る" do
+      visit "/tasks/sample"
+      click_on "タスクを追加"
+
+      page.send_keys("仮の名前")
+      expect(check_of("仮の名前")).to be_present
+      6.times { page.send_keys(:backspace) }
+
+      expect(page.evaluate_script("document.querySelector(\"ol > li:last-child [data-subtask-card-target='title']\").matches(':empty')")).to be true
+      expect(check_of("新しいタスク")["aria-label"]).to eq "「新しいタスク」を完了にする"
+    end
+
+    it "既存のカードのタスク名は編集できない" do
+      visit "/tasks/sample"
+
+      expect(page).to have_no_css("ol > li:not(:last-child) [contenteditable]")
+      expect(all("ol [contenteditable]")).to be_empty
     end
 
     it "分解失敗の画面でも追加でき、進捗が「—」から n/m 完了に変わる" do
@@ -210,20 +275,141 @@ RSpec.describe "S-4 タスク詳細", :js do
       expect(page).to have_text("すべての手順が完了しました")
       expect(progress_text).to eq "6/6 完了"
     end
+  end
 
-    it "日付の絞り込みで見えている手順が完了して 0 件になっても、全完了の空状態は出さない" do
+  describe "日付タブ" do
+    def tab(label)
+      find("[role='tablist'] [role='tab']", text: label, exact_text: true)
+    end
+
+    def visible_titles
+      all("ol > li [data-subtask-card-target='title']").map { it.text.strip }
+    end
+
+    def selected_tab
+      find("[role='tab'][aria-selected='true']").text.strip
+    end
+
+    let(:tab_empty) { "この日のサブタスクはありません" }
+
+    it "「今日」で今日の手順だけを表示し、「すべて」で戻る。選んだタブに下線が付く" do
       visit "/tasks/sample"
-      # 日付タブ「明日」で絞り込んだ状態を再現する（明日以外のカードに data-hidden-by-tab を付ける）
-      page.execute_script(<<~JS)
-        document.querySelectorAll("ol > li[data-due-key]").forEach((li) => {
-          li.toggleAttribute("data-hidden-by-tab", li.dataset.dueKey !== "tomorrow")
-        })
-      JS
-      expect(page).to have_text("上長に方向性を確認する")
+      expect(visible_titles.size).to eq 5
+
+      tab("今日").click
+      expect(visible_titles).to eq %w[目的と読み手を整理する 必要な情報を集める]
+      expect(tab("今日")["aria-selected"]).to eq "true"
+      expect(tab("すべて")["aria-selected"]).to eq "false"
+      expect(find("[role='tabpanel']")["aria-labelledby"]).to eq "date-tab-today"
+      underline = ->(label) { page.evaluate_script("getComputedStyle(document.getElementById('date-tab-#{label}')).borderBottomColor") }
+      expect(underline.call("today")).not_to eq underline.call("all")
+      expect(underline.call("all")).to eq "rgba(0, 0, 0, 0)"
+
+      tab("すべて").click
+      expect(visible_titles.size).to eq 5
+      expect(visible_titles.last).to eq "提出後に振り返りをメモする"
+    end
+
+    it "期限なしの手順は「すべて」にだけ表示する" do
+      visit "/tasks/sample"
+
+      %w[今日 明日 6/27].each do |label|
+        tab(label).click
+        expect(page).to have_no_text("提出後に振り返りをメモする")
+      end
+      tab("すべて").click
+      expect(page).to have_text("提出後に振り返りをメモする")
+    end
+
+    it "完了フィルタと独立して働き、どちらにも隠されていない手順だけを表示する" do
+      visit "/tasks/sample"
+
+      tab("今日").click
+      expect(page).to have_no_text("依頼の背景と締め切りを確認する")
+      click_on "完了済みを表示"
+      expect(visible_titles).to eq %w[依頼の背景と締め切りを確認する 目的と読み手を整理する 必要な情報を集める]
+
+      tab("明日").click
+      expect(visible_titles).to eq %w[上長に方向性を確認する]
+    end
+
+    it "「明日」で完了済みを隠した結果 0 件になると、タブの空状態だけを出し、全完了の文言は出さない" do
+      visit "/tasks/sample"
+      tab("明日").click
+      expect(page).to have_no_text(tab_empty)
 
       check_of("上長に方向性を確認する").click
       expect(page).to have_no_text("上長に方向性を確認する")
+      expect(page).to have_text(tab_empty)
       expect(page).to have_no_text("すべての手順が完了しました")
+
+      click_on "完了済みを表示"
+      expect(page).to have_no_text(tab_empty)
+      expect(page).to have_text("上長に方向性を確認する")
+
+      click_on "完了済みを隠す"
+      expect(page).to have_text(tab_empty)
+      tab("すべて").click
+      expect(page).to have_no_text(tab_empty)
+    end
+
+    it "全サブタスクが完了済みのときは、どのタブでも全完了の空状態だけを出す" do
+      visit "/tasks/sample?status=done&all_done=1"
+      expect(page).to have_text("すべての手順が完了しました")
+
+      tab("明日").click
+      expect(page).to have_text("すべての手順が完了しました")
+      expect(page).to have_no_text(tab_empty)
+    end
+
+    it "←→ でタブを移動して選び、Home・End で先頭・末尾へ移る。Tab キーは選択中のタブだけに止まる" do
+      visit "/tasks/sample"
+      tab("すべて").click
+      expect(page).to have_css("#date-tab-all:focus")
+
+      page.send_keys(:right)
+      expect(page).to have_css("#date-tab-today:focus")
+      expect(selected_tab).to eq "今日"
+      expect(visible_titles).to eq %w[目的と読み手を整理する 必要な情報を集める]
+
+      page.send_keys(:right)
+      expect(selected_tab).to eq "明日"
+      page.send_keys(:end)
+      expect(selected_tab).to eq "6/27"
+      expect(visible_titles).to eq %w[初稿を作成する]
+      page.send_keys(:right)
+      expect(selected_tab).to eq "すべて"
+      page.send_keys(:left)
+      expect(selected_tab).to eq "6/27"
+      page.send_keys(:home)
+      expect(selected_tab).to eq "すべて"
+      expect(page).to have_css("#date-tab-all:focus")
+
+      tabindexes = all("[role='tab']").map { it["tabindex"] }
+      expect(tabindexes).to eq %w[0 -1 -1 -1]
+    end
+
+    it "タスクを追加すると「すべて」に戻り、追加したカード（期限は今日）が見える" do
+      visit "/tasks/sample"
+      tab("明日").click
+
+      click_on "タスクを追加"
+      expect(selected_tab).to eq "すべて"
+      expect(visible_titles.size).to eq 6
+      expect(page).to have_css("ol > li:last-child[data-due-key='today']")
+      expect(page).to have_css("ol > li:last-child [data-subtask-card-target='title']:focus")
+
+      tab("今日").click
+      expect(page).to have_css("ol > li:last-child [data-subtask-card-target='title']", visible: true)
+    end
+
+    it "タブで隠れた手順も親タスクの進捗に数える" do
+      visit "/tasks/sample"
+      tab("明日").click
+
+      expect(progress_text).to eq "1/6 完了"
+      check_of("上長に方向性を確認する").click
+      expect(progress_text).to eq "2/6 完了"
     end
   end
 end

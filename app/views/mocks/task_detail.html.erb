@@ -8,11 +8,13 @@
     <% end %>
   <% end %>
 
+  <% done = @status == :done %>
   <%= tag.div class: "mx-auto w-full max-w-[850px] px-4 pb-16 pt-[64px]",
-              data: { controller: class_names("subtasks", "decomposition-progress": @status == :decomposing) }
+              data: { controller: class_names("subtasks", "decomposition-progress": @status == :decomposing, "date-tabs": done) }
                       .merge(@status == :decomposing ? { decomposition_progress_url_value: @done_url,
                                                          decomposition_progress_delay_value: 3000,
-                                                         decomposition_progress_autoplay_value: @autoplay } : {}) do %>
+                                                         decomposition_progress_autoplay_value: @autoplay } : {})
+                      .merge(done ? { action: "subtasks:added->date-tabs#showAll" } : {}) do %>
     <div class="flex items-center justify-between">
       <%= render "shared/decomposition_status", status: @status %>
       <%= render "shared/menu", id: "task-menu", label: "「#{@title}」のメニュー",
@@ -20,7 +22,7 @@
     </div>
     <h1 class="mt-5 font-serif text-[40px] font-bold leading-[1.45] tracking-tight"><%= @title %></h1>
     <p class="mt-4 text-[11px] text-muted">
-      <%= { done: "AIが実行しやすいステップに分解しました。内容は自由に編集できます。",
+      <%= { done: "AI が実行しやすい手順に分解しました。内容は自由に編集できます。",
             decomposing: "AI が実行しやすい手順に分解しています。通常 30 秒以内に完了します。",
             failed: "分解に失敗しました。再度お試しください" }.fetch(@status) %>
     </p>
@@ -39,11 +41,14 @@
               class="mb-10 mt-6 rounded-lg bg-brand px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-brand-hover">再分解する</button>
     <% end %>
 
-    <% if @status == :done %>
-      <div class="mt-12 flex border-b border-line text-[11px] font-semibold" role="tablist">
+    <% if done %>
+      <%# 選択状態は aria-selected だけで持ち、下線と文字色は aria-selected: の CSS が描く（date_tabs_controller が切り替える） %>
+      <div class="mt-12 flex border-b border-line text-[11px] font-semibold" role="tablist" aria-label="期限の日付で絞り込む">
         <% date_tabs.each_with_index do |tab, i| %>
-          <button type="button" role="tab" aria-selected="<%= i.zero? %>" data-due-key="<%= tab[:key] %>"
-                  class="<%= class_names("-mb-px px-4 py-3", i.zero? ? "border-b-2 border-brand text-brand" : "text-muted hover:text-ink") %>"><%= tab[:label] %></button>
+          <button type="button" role="tab" id="date-tab-<%= tab[:key] %>" aria-selected="<%= i.zero? %>" aria-controls="subtask-panel"
+                  tabindex="<%= i.zero? ? 0 : -1 %>" data-due-key="<%= tab[:key] %>" data-date-tabs-target="tab"
+                  data-action="date-tabs#select keydown->date-tabs#navigate"
+                  class="-mb-px border-b-2 border-transparent px-4 py-3 text-muted not-aria-selected:hover:text-ink aria-selected:border-brand aria-selected:text-brand"><%= tab[:label] %></button>
         <% end %>
       </div>
     <% end %>
@@ -63,15 +68,26 @@
       </div>
     <% end %>
 
-    <ol class="mt-4 space-y-2.5 empty:hidden" data-subtasks-target="list"><% @subtasks.each.with_index(1) do |subtask, number| %>
-        <%= render "mocks/subtask_card", subtask:, number: format("%02d", number) %>
-      <% end %></ol>
+    <%# 分解完了のときだけ日付タブの tabpanel になる %>
+    <%= tag.div(**(done ? { id: "subtask-panel", role: "tabpanel", aria: { labelledby: "date-tab-all" },
+                           data: { date_tabs_target: "panel" } } : {})) do %>
+      <%= tag.ol class: "mt-4 space-y-2.5 empty:hidden",
+                 data: { subtasks_target: "list", date_tabs_target: ("list" if done) } do %><% @subtasks.each.with_index(1) do |subtask, number| %>
+          <%= render "mocks/subtask_card", subtask:, number: format("%02d", number) %>
+        <% end %><% end %>
 
-    <%= render "shared/empty_state", icon: :inbox, title: "すべての手順が完了しました",
-                                     body: "完了した手順は「完了済みを表示」で確認できます。",
-                                     action: { label: "マイタスクへ", href: my_tasks_mock_path },
-                                     data: { completed_filter_target: "empty" },
-                                     hidden: !(@subtasks.any? && @subtasks.all? { it[:done] }) %>
+      <%# 空状態は理由ごとに分ける。日付タブで 0 件（date_tabs）と、すべて完了済みで隠れた（completed_filter）は同時に出ない %>
+      <% if done %>
+        <%= render "shared/empty_state", icon: :calendar, title: "この日のサブタスクはありません",
+                                         body: "ほかの日付か「すべて」のタブで確認できます。",
+                                         data: { date_tabs_target: "empty" }, hidden: true %>
+      <% end %>
+      <%= render "shared/empty_state", icon: :inbox, title: "すべての手順が完了しました",
+                                       body: "完了した手順は「完了済みを表示」で確認できます。",
+                                       action: { label: "マイタスクへ", href: my_tasks_mock_path },
+                                       data: { completed_filter_target: "empty" },
+                                       hidden: !(@subtasks.any? && @subtasks.all? { it[:done] }) %>
+    <% end %>
 
     <template data-subtasks-target="template">
       <%= render "mocks/subtask_card", subtask: new_subtask, number: "__NUMBER__" %>

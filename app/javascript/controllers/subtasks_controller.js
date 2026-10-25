@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 // モック：「タスクを追加」でカードを末尾に追加し（保存はしない）、親タスクの進捗をサブタスクの完了数に合わせる。
+// 追加したカードはタスク名の入力欄へフォーカスし、subtasks:added イベントを出す（日付タブはこれを受けて「すべて」に戻す）。
 // 進捗のマークアップは shared/_task_progress と同じ規則で書き換える
 export default class extends Controller {
   static targets = ["list", "template", "progress"]
@@ -20,6 +21,9 @@ export default class extends Controller {
     const number = String(this.listTarget.children.length + 1).padStart(2, "0")
     const html = this.templateTarget.innerHTML.replaceAll("__NUMBER__", number)
     this.listTarget.insertAdjacentHTML("beforeend", html)
+    const card = this.listTarget.lastElementChild
+    this.dispatch("added", { detail: { card } })
+    card.querySelector("[contenteditable='true']")?.focus()
   }
 
   renderProgress() {

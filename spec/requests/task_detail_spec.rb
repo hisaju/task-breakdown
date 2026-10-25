@@ -27,7 +27,7 @@ RSpec.describe "S-4 タスク詳細（画面モック）" do
       get "/tasks/sample"
 
       expect(status).to eq "done"
-      expect(response.body).to include("AIが実行しやすいステップに分解しました。")
+      expect(response.body).to include("AI が実行しやすい手順に分解しました。内容は自由に編集できます。")
       expect(html.at_css("[role='tablist']")).to be_present
       expect(cards.size).to eq 6
       expect(html.css("[data-skeleton]")).to be_empty
@@ -65,6 +65,16 @@ RSpec.describe "S-4 タスク詳細（画面モック）" do
       expect(html.css("[data-skeleton]")).to be_empty
       expect(cards).to be_empty
       expect(html.at_css("button[data-action='subtasks#add']")).to be_present
+    end
+  end
+
+  describe "タイトル（?title=）" do
+    it "文字列以外（配列・ハッシュ）はサンプルの親タスク名にする" do
+      [ "title[]=a", "title[k]=v" ].each do |query|
+        get "/tasks/sample?#{query}"
+
+        expect(html.at_css("h1").text.strip).to eq("社内提案資料を作成する"), query
+      end
     end
   end
 
@@ -227,6 +237,107 @@ RSpec.describe "S-4 タスク詳細（画面モック）" do
       expect(html.at_css("[data-completed-filter-target='empty']")["hidden"]).to be_nil
       expect(progress.text.squish).to eq "6/6 完了"
       expect(check_labels).to all(end_with("」を未完了に戻す"))
+    end
+  end
+
+  describe "日付タブ" do
+    def tabs
+      html.css("[role='tablist'] [role='tab']")
+    end
+
+    it "すべて・日付ごとのタブを持ち、最初は「すべて」が選ばれている" do
+      get "/tasks/sample"
+
+      tablist = html.at_css("[role='tablist']")
+      expect(tablist["aria-label"]).to eq "期限の日付で絞り込む"
+      expect(tablist["data-controller"]).to be_nil
+      expect(tabs.map { it.text.strip }).to eq %w[すべて 今日 明日 6/27]
+      expect(tabs.map { it["data-due-key"] }).to eq %w[all today tomorrow 2026-06-27]
+      expect(tabs.map { it["aria-selected"] }).to eq %w[true false false false]
+      # 選択中のタブだけが Tab キーで止まる（タブ間は ←→ で移る）
+      expect(tabs.map { it["tabindex"] }).to eq %w[0 -1 -1 -1]
+      expect(tabs.map { it["data-action"] }).to all(include("date-tabs#select"))
+    end
+
+    it "タブは一覧（tabpanel）を aria-controls で指し、tabpanel は選択中のタブを aria-labelledby で指す" do
+      get "/tasks/sample"
+
+      expect(tabs.map { it["aria-controls"] }.uniq).to eq [ "subtask-panel" ]
+      panel = html.at_css("#subtask-panel")
+      expect(panel["role"]).to eq "tabpanel"
+      expect(panel["aria-labelledby"]).to eq tabs.first["id"]
+      expect(tabs.map { it["id"] }).to eq %w[date-tab-all date-tab-today date-tab-tomorrow date-tab-2026-06-27]
+      expect(panel.at_css("ol[data-subtasks-target='list']")).to be_present
+    end
+
+    it "初期表示でどのカードも日付タブで隠さない" do
+      get "/tasks/sample"
+
+      expect(cards.map { it.key?("data-hidden-by-tab") }).to all(be false)
+      expect(cards.map { it["data-due-key"] }).to eq %w[today today today tomorrow 2026-06-27 none]
+    end
+
+    it "タブで 0 件になったときの空状態を、全完了の空状態とは別の要素として持つ（初期非表示）" do
+      get "/tasks/sample"
+
+      empty = html.at_css("[data-date-tabs-target='empty']")
+      expect(empty["hidden"]).not_to be_nil
+      expect(empty.text).to include("この日のサブタスクはありません")
+      expect(empty["data-completed-filter-target"]).to be_nil
+      expect(empty.text).not_to include("すべての手順が完了しました")
+    end
+
+    it "分解中・分解失敗では日付タブの絞り込みを持たない" do
+      %w[decomposing failed].each do |value|
+        get "/tasks/sample", params: { status: value }
+
+        expect(html.at_css("[data-controller~='date-tabs']")).to be_nil
+        expect(html.at_css("[data-date-tabs-target='empty']")).to be_nil
+        expect(html.at_css("[role='tabpanel']")).to be_nil
+      end
+    end
+  end
+
+  describe "追加カード" do
+    def template_card
+      Nokogiri::HTML::DocumentFragment.parse(html.at_css("template[data-subtasks-target='template']").inner_html).at_css("li")
+    end
+
+    it "追加カードのタスク名・補足は入力欄（contenteditable）で、プレースホルダと aria-label を持つ" do
+      get "/tasks/sample"
+
+      title = template_card.at_css("[data-subtask-card-target='title']")
+      expect(title["contenteditable"]).to eq "true"
+      expect(title["role"]).to eq "textbox"
+      expect(title["aria-label"]).to eq "タスク名"
+      expect(title["aria-placeholder"]).to eq "タスク名を入力"
+      expect(title["data-placeholder"]).to eq "タスク名を入力"
+      expect(title.text).to eq ""
+
+      description = template_card.at_css("[data-subtask-card-target='description']")
+      expect(description["contenteditable"]).to eq "true"
+      expect(description["role"]).to eq "textbox"
+      expect(description["aria-multiline"]).to eq "true"
+      expect(description["aria-label"]).to eq "補足"
+      expect(description["aria-placeholder"]).to eq "補足を入力（任意）"
+      expect(description["data-placeholder"]).to eq "補足を入力（任意）"
+      expect(description.text).to eq ""
+    end
+
+    it "追加カードは期限が今日で、入力前の完了チェック・メニューは「新しいタスク」と読み上げる" do
+      get "/tasks/sample"
+
+      expect(template_card["data-due-key"]).to eq "today"
+      expect(template_card.at_css("[data-subtask-card-target='check']")["aria-label"]).to eq "「新しいタスク」を完了にする"
+      expect(template_card.at_css("button[aria-haspopup='menu']")["aria-label"]).to eq "「新しいタスク」のメニュー"
+      expect(template_card["data-subtask-card-title-value"]).to eq ""
+      expect(template_card["data-subtask-card-default-title-value"]).to eq "新しいタスク"
+    end
+
+    it "既存のカードは編集できない" do
+      get "/tasks/sample"
+
+      expect(cards.css("[contenteditable]")).to be_empty
     end
   end
 end

@@ -33,7 +33,7 @@
 /* キーボード操作時のフォーカス表示をリンク・ボタン全体で揃える。
    白地・canvas 地でも見えるよう、非テキストのコントラスト 3:1 以上の brand-dot を使う */
 @layer base {
-  :where(a[href], button, [role="tab"], [role="menuitem"]):focus-visible {
+  :where(a[href], button, [role="tab"], [role="menuitem"], [contenteditable="true"]):focus-visible {
     @apply ring-2 ring-brand-dot;
   }
 }
