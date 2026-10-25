@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose run --rm web bundle exec rspec:*)",
+      "Bash(docker compose run --rm web bin/rubocop:*)",
+      "Bash(docker compose run --rm web bin/brakeman:*)",
+      "Bash(docker compose run --rm web bin/rails db:prepare)",
+      "Bash(docker compose run --rm web bin/rails routes:*)",
+      "Bash(docker compose run --rm css bin/rails tailwindcss:build)",
+      "Bash(docker compose up:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose logs:*)",
+      "Bash(docker compose restart:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./config/master.key)",
+      "Bash(docker compose down -v:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/rubocop_autocorrect.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

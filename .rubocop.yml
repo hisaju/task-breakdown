@@ -1,0 +1,31 @@
+# Rails 標準スタイル（rubocop-rails-omakase）をベースに RSpec 用ルールを追加
+inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+
+plugins:
+  - rubocop-rspec
+  - rubocop-rspec_rails
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - "db/schema.rb"
+    - "bin/**/*"
+    - "vendor/**/*"
+    - "node_modules/**/*"
+
+# 日本語の describe / it を許可し、1 example に複数の期待を書くことを許容する
+RSpec/MultipleExpectations:
+  Enabled: false
+RSpec/ExampleLength:
+  Max: 25
+RSpec/DescribeClass:
+  Exclude:
+    - "spec/requests/**/*"
+    - "spec/system/**/*"
+RSpec/MultipleMemoizedHelpers:
+  Max: 8
+RSpec/NestedGroups:
+  Max: 4
+# context は日本語で「〜の場合」「ログイン済み」等と書く
+RSpec/ContextWording:
+  Enabled: false

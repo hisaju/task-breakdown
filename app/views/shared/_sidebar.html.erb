@@ -1,0 +1,29 @@
+<aside class="sticky top-0 flex h-screen w-[232px] shrink-0 flex-col border-r border-line bg-white px-[18px] py-7">
+  <%= link_to root_path, class: "flex items-center gap-2.5 px-2.5" do %>
+    <span class="grid h-[30px] w-[30px] place-items-center rounded-lg bg-brand text-white">
+      <%= render "shared/icon", name: :sparkles, class: "h-4 w-4" %>
+    </span>
+    <span class="text-lg font-bold tracking-tight">Tasklet</span>
+  <% end %>
+
+  <nav class="mt-8 space-y-2">
+    <% [ [ "タスクを作る", :inbox, root_path, %w[new_task] ], [ "マイタスク", :calendar, my_tasks_mock_path, %w[my_tasks task_detail] ] ].each do |label, icon, path, actions| %>
+      <%= link_to path, class: class_names("flex items-center gap-3 rounded-lg px-3 py-3 text-[13px] font-semibold",
+                                          action_name.in?(actions) ? "bg-brand-soft text-brand" : "text-muted hover:bg-canvas") do %>
+        <%= render "shared/icon", name: icon, class: "h-4 w-4" %>
+        <%= label %>
+      <% end %>
+    <% end %>
+  </nav>
+
+  <div class="mt-auto flex items-center gap-2.5 border-t border-line px-2 pt-4">
+    <span class="grid h-[34px] w-[34px] place-items-center rounded-full bg-[#a7bba4] text-[11px] font-semibold text-white">YU</span>
+    <div class="flex-1 leading-tight">
+      <p class="text-xs font-semibold">山田 優</p>
+      <p class="text-[11px] text-subtle">フリープラン</p>
+    </div>
+    <%= link_to login_mock_path, title: "ログアウト", aria: { label: "ログアウト" }, class: "text-subtle hover:text-ink" do %>
+      <%= render "shared/icon", name: :more, class: "h-4 w-4" %>
+    <% end %>
+  </div>
+</aside>

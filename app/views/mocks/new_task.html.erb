@@ -1,0 +1,32 @@
+<% content_for :title, "タスクを作る | Tasklet" %>
+
+<div class="mx-auto flex max-w-[720px] flex-col items-center px-4 pt-[90px] text-center">
+  <span class="grid h-12 w-12 place-items-center rounded-xl bg-brand-soft text-brand">
+    <%= render "shared/icon", name: :sparkles, class: "h-5 w-5" %>
+  </span>
+  <p class="mt-5 text-[11px] font-semibold tracking-[0.12em] text-brand-dot">AI TASK ASSISTANT</p>
+  <h1 class="mt-4 font-serif text-[44px] font-bold tracking-tight">今日は何に取り組みますか？</h1>
+  <p class="mt-6 text-sm leading-relaxed text-muted">やりたいことをそのまま入力してください。<br>実行できるサイズのタスクに分解します。</p>
+
+  <%= form_with url: task_detail_mock_path, method: :get, data: { controller: "prompt", turbo: false },
+                class: "mt-11 w-full rounded-2xl border border-line bg-white text-left shadow-[0_12px_40px_-12px_rgba(32,36,33,0.12)]" do |form| %>
+    <%= form.text_area :title, rows: 4, placeholder: "例：来週の経営会議に向けて、新規事業の提案資料を作りたい",
+                       aria: { label: "取り組みたいこと" }, data: { prompt_target: "input", action: "keydown->prompt#submitOnShortcut" },
+                       class: "block w-full resize-none rounded-t-2xl border-0 px-6 pt-6 text-[15px] placeholder:text-subtle focus:ring-0 focus:outline-none" %>
+    <div class="flex items-center justify-between border-t border-line px-5 py-2.5">
+      <span class="text-[11px] text-subtle">⌘ + Enter で送信</span>
+      <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-3 text-[13px] font-semibold text-white hover:bg-brand-hover">
+        タスクを分解する
+        <%= render "shared/icon", name: :chevron_right, class: "h-3.5 w-3.5" %>
+      </button>
+    </div>
+  <% end %>
+
+  <div class="mt-6 flex flex-wrap items-center justify-center gap-2" data-controller="prompt-examples">
+    <span class="mr-1 text-[10px] text-subtle">入力例</span>
+    <% MocksController::EXAMPLES.each do |example| %>
+      <button type="button" data-action="prompt-examples#fill" data-text="<%= example %>"
+              class="rounded-full border border-line bg-transparent px-3 py-2 text-[10px] text-ink/80 hover:bg-white"><%= example %></button>
+    <% end %>
+  </div>
+</div>

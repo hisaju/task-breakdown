@@ -1,0 +1,45 @@
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  volumes:
+    - .:/app
+    - bundle:/usr/local/bundle
+  environment: &app-env
+    DB_HOST: db
+    DB_USERNAME: postgres
+    DB_PASSWORD: postgres
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+
+  web:
+    <<: *app
+    command: bash -c "rm -f tmp/pids/server.pid && bin/rails server -b 0.0.0.0"
+    ports:
+      - "${PORT:-3000}:3000"
+    tty: true
+    stdin_open: true
+
+  css:
+    <<: *app
+    command: bin/rails tailwindcss:watch[always,poll]
+    tty: true
+
+volumes:
+  bundle:
+  postgres:

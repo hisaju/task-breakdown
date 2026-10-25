@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* デザイントークン（Figma モック準拠） */
+@theme {
+  --font-sans: Inter, "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
+  --font-serif: Georgia, "Yu Mincho", "Hiragino Mincho ProN", serif;
+
+  --color-ink: #202421;
+  --color-muted: #767c76;
+  --color-subtle: #9a9f99;
+  --color-canvas: #f6f7f4;
+  --color-line: #e3e6df;
+  --color-brand: #426349;
+  --color-brand-hover: #3f6147;
+  --color-brand-soft: #edf2eb;
+  --color-brand-dot: #66866b;
+  --color-accent-soft: #f8efe4;
+  --color-accent: #9a6a34;
+}
