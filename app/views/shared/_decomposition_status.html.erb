@@ -1,0 +1,9 @@
+<%# 分解ステータス。S-4 見出し上と S-5 カードで同じマークアップを使う（status: :decomposing | :done | :failed） %>
+<% text_class, dot_class, label = {
+     decomposing: [ "text-accent", "animate-pulse bg-accent", "分解中" ],
+     done: [ "text-brand", "bg-brand-dot", "分解完了" ],
+     failed: [ "text-danger", "bg-danger-dot", "分解失敗" ]
+   }.fetch(status.to_sym) { raise ArgumentError, "unknown decomposition status: #{status}" } %>
+<span class="<%= class_names("flex items-center gap-1.5 text-2xs font-semibold", text_class) %>" data-decomposition-status="<%= status %>">
+  <span class="<%= class_names("h-1.5 w-1.5 rounded-full", dot_class) %>"></span><%= label %>
+</span>
