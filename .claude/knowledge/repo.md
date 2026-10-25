@@ -12,7 +12,7 @@
 - 影: `shadow-card`（カードのホバー）`shadow-float`（フォームカード）。文字: `text-2xs`（10px。最小サイズ）
 - Tailwind v4 は使われたトークンだけ CSS に出す（未使用の `danger-soft` はビルド結果に出ない）。ビルドは圧縮され `rgba(32,36,33,0.18)` → `#2024212e`、`0.213` → `.213` になる
 - `spec/assets/design_tokens_spec.rb` がビルド後の CSS（`app/assets/builds/tailwind.css`）を読んで値を検査する。事前に `docker compose run --rm css bin/rails tailwindcss:build` が必要（css コンテナが watch 中なら最新）
-- フォーカス表示はビューにクラスを書かず、`@layer base` の `:where(a[href], button, [role=tab], [role=menuitem]):focus-visible` で `ring-2 ring-brand-dot` を一括適用している（`brand-soft` は白地でコントラスト約 1.1:1 で見えないため使わない。入力欄の `focus:ring-brand-soft` は枠線 `border-brand` と併用なので別扱い）
+- フォーカス表示はビューにクラスを書かず、`@layer base` の `:where(a[href], button, [role=tab], [role=menuitem], [contenteditable=true]):focus-visible` で `ring-2 ring-brand-dot` を一括適用している（`brand-soft` は白地でコントラスト約 1.1:1 で見えないため使わない。入力欄の `focus:ring-brand-soft` は枠線 `border-brand` と併用なので別扱い）
 - `<head>` は `layouts/_head.html.erb` に集約（両レイアウトが render）。画面タイトルは `content_for :title`、追加タグは `content_for :head`
 
 ## サンプルデータ（`MocksController`）
@@ -23,6 +23,7 @@
 - S-5 の親行 `<li>` は `data-done`（`total > 0` かつ `done == total` で "true"）と `data-due-key` を持つ。現状 "true" は「経費精算の締め確認」（3 日後 17:00）だけで、単独の日付グループにしてある（完了済みを隠すと見出しごと隠れる様子を確かめられる）
 - S-5 の行は `<li>` がカード（S-4 サブタスクカードと同じ `px-5 py-5 gap-4 rounded-xl`、ホバーで `shadow-card`）。中は `<a>`（ステータス・期限・タイトル・進捗）と行メニュー（`_menu`、`id` は `parent-task-menu-01`… の通し番号、`label` は「『親タスク名』のメニュー」）の兄弟。リンクの中にボタンを入れない
 - S-5 の行リンクは `task_detail_mock_path(title:, status:, due:)`（`due` は `%Y-%m-%dT%H:%M`、期限なしは空文字）。S-4 は行の状態・期限で開き、サブタスクはどの行でも同じサンプル。行の期限表示は `data-row-due`
+- S-5 の行のフォーカス: `<li>` に `has-[>a:focus-visible]:ring-2 ring-brand-dot`、リンク側は `focus-visible:ring-0`（カード全体を囲み、メニューへのフォーカスでは囲まない。`focus-within` だとメニューでも囲んでしまう）
 - S-5 の行は stretched link: `<li>` が `relative`、`<a>` の `after:absolute after:inset-0` でカード全面を当たり判定にする。メニュー（`_menu` のルートは `relative`）は DOM 上でリンクより後ろなので z-index 無しで前面に出る。行メニューに `z-10` 等を付けると、開いたドロップダウンが次の行のメニューの下に潜るので付けない
 - S-4 のサブタスク期限（`detail_subtasks`）と追加カード（`new_subtask`）の期限は、親の期限（`@due`）より後なら親の期限に丸める。日付タブは丸めた後の `@subtasks` から作る
 - 期限の表示はすべて `DueDateHelper`（`due_label` / `due_key` / `due_time_tag`）を通す。期限は `<time datetime>` で出力され、spec はこれを拾って書式を検査する。カードとタブには `data-due-key`（today / tomorrow / YYYY-MM-DD / none）が付く
@@ -34,6 +35,16 @@
 - 画面を見ながらデバッグしたいときはホストで動かせないので、`page.save_screenshot("x.png")` で画像を残して確認する。相対パスは `Capybara.save_path`（`tmp/capybara/`）基準になる（`"tmp/screenshots/x.png"` と書くと `tmp/capybara/tmp/screenshots/` に出る）
 - cuprite の `click` / `hover` は対象を画面中央付近へスクロールしてから操作する。sticky なサイドバー下部の要素をクリックすると `window.scrollY` が変わり、スクリーンショットの見た目がずれる（アプリの挙動ではない）。見た目を撮るときは `execute_script("...click()")` で押す
 - 失敗時のスクリーンショットは `tmp/screenshots/` に保存される
+- cuprite は `url_blacklist` で Web フォント（fonts.googleapis.com / fonts.gstatic.com）を遮断している（外部の応答待ちによる Ferrum タイムアウト対策）。system spec ではフォントが当たらない（Docker の Chromium は和文セリフ体が豆腐になる）が、見た目の確認用スクリーンショットでもそのまま
+- 遮断したリクエストは `page.driver.network_traffic` に残らない（`blocked?` で探せない）。遮断の確認は「該当 URL が 1 件も無い」で書く
+
+## 横断検査（`spec/requests/mock_*_spec.rb`）
+- 巡回する URL は `spec/support/mock_pages.rb` の `MockPages::PATHS`（全画面・全状態）。**モック画面や状態クエリを足したらここにも足す**
+- `mock_links_spec`: 全 `<a href>` / `<form action>` が `recognize_path` で解決できる（`#`・外部 URL 不可。外部参照は `ALLOWED_EXTERNAL_HOSTS` の Web フォントだけ）。S-5 行リンクの `status` / `due`、ログイン前レイアウト、POST ルート、規約リンクの `target=_blank rel=noopener` もここ
+- `mock_buttons_spec`: 全 `<button>` が `type="submit"` かつ form 内／`data-action` あり／`data-mock="noop"` のいずれかで、`type` を明示。見た目のみのボタンのラベル一覧は `docs/screens.md` の「画面モックで動く操作」と一致させる（ボタンを足したら表と spec の両方を直す）
+- `mock_views_spec`: `<title>` が「〜 | Tasklet」、トークン外の色・文字サイズ（描画結果と `app/views` の両方）、id の画面内一意（`role="menu"` 含む）、メニューのトリガーと完了チェックの `aria-label` の一意、初期表示に `contenteditable` が無い
+- 検査は `mock_document`（`<template>` を取り除いた Nokogiri 文書）で読む。追加カードのひな形は `__NUMBER__` 入りの id と `contenteditable` を持つため対象外
+- 追加カードの textbox の `aria-label`（「タスク名」「補足」）は複数追加すると同名になるが、カード内の入力欄の名前としては許容し、一意性の検査対象外（読み上げの区別は完了チェック・メニュー側の名前で行う）
 
 ## 作業ディレクトリの共有
 - 複数のエージェント（developer / tester 等）が同じ作業ディレクトリを使う。tester が比較のために `git switch main` や特定コミットを checkout すると、developer 側が detached HEAD になり push が漏れる。別リビジョンとの比較は `git worktree add ../tb-main origin/main` など別ディレクトリで行う（#12, 2026-10-25）
@@ -54,6 +65,7 @@
 
 ## モック用クエリ（docs には書かない）
 - S-4 `/tasks/sample`: `?title=`（見出し。配列・ハッシュ（`?title[]=a`）は無視してサンプル名）、`?status=decomposing|done|failed`（既定・不正値は done）、`?due=`（ISO 8601 の日時。例 `2026-06-20T17:00`。キーが無ければサンプルの期限＝7 日後 17:00、空・不正値は「期限なし」）、`?all_done=1`（status=done のとき全サブタスク完了済み＝全完了の空状態で開く）、`?autoplay=0`（分解中から自動遷移しない）
+- S-3 の「200 文字まで」は `#title-hint`（textarea の `aria-describedby`）。S-2 の「（いずれも新しいタブで開きます）」は `#terms-new-tab`（規約リンク 2 本の `aria-describedby`）。チェックボックスの label には入れない（label の名前が変わり `check "利用規約とプライバシーポリシーに同意する"` が壊れる）
 - S-3 `/` の送信: GET で `/tasks/sample?title=…&status=decomposing&due=…`（`status` は hidden、`due` は datetime-local の値。未入力でも `due=` は空で付き、S-4 は「期限なし」）。`due` の `min` はサーバの現在時刻（分単位、`include_seconds: false`）。空白だけの入力は `prompt_controller#validate` が `setCustomValidity` で止める（入力例チップは値を入れた後に `input` イベントを dispatch して再検証させる）
 - S-1/S-2 の送信: `POST /login` → `mocks#login_submit`、`POST /signup` → `mocks#signup_submit`。保存・検証なしで `redirect_to root_path`（302）。GET だとパスワードがクエリに載るため POST にしている
 - S-6 `/terms`・S-7 `/privacy`: auth レイアウトの静的ページ（`mocks/_legal_page`）。S-2 の同意文から `target="_blank" rel="noopener"` で開く（入力途中のフォームを失わない）。本文はダミー
