@@ -20,7 +20,9 @@
 - 期限は相対日時（今日 12:00・17:00・18:00／明日 12:00／7 日後 17:00／nil）。サブタスクの期限は親の期限を超えない（「社内提案資料を作成する」は 7 日後 17:00）
 - サブタスク 6 件のうち 1 件目が完了済み（`done: true`）、6 件目が期限なし。親タスクに全完了（「経費精算の締め確認」3/3）を含む
 - S-5「社内提案資料を作成する」の `done/total` は `sample_subtasks` から導出。他の行の進捗は固定値
-- S-5 の親行 `<li>` は `data-done`（`total > 0` かつ `done == total` で "true"）と `data-due-key` を持つ。現状 "true" は「経費精算の締め確認」だけ
+- S-5 の親行 `<li>` は `data-done`（`total > 0` かつ `done == total` で "true"）と `data-due-key` を持つ。現状 "true" は「経費精算の締め確認」（3 日後 17:00）だけで、単独の日付グループにしてある（完了済みを隠すと見出しごと隠れる様子を確かめられる）
+- S-5 の行は `<li>` がカード（S-4 サブタスクカードと同じ `px-5 py-5 gap-4 rounded-xl`、ホバーで `shadow-card`）。中は `<a>`（ステータス・期限・タイトル・進捗）と行メニュー（`_menu`、`id` は `parent-task-menu-01`… の通し番号、`label` は「『親タスク名』のメニュー」）の兄弟。リンクの中にボタンを入れない
+- S-5 の行リンクは `task_detail_mock_path(title:, status:)`。S-4 は行のステータスで開くが、サブタスク・期限はどの行でも同じサンプル
 - 期限の表示はすべて `DueDateHelper`（`due_label` / `due_key` / `due_time_tag`）を通す。期限は `<time datetime>` で出力され、spec はこれを拾って書式を検査する。カードとタブには `data-due-key`（today / tomorrow / YYYY-MM-DD / none）が付く
 - 日付に依存する spec は `travel_to` で固定する（`ActiveSupport::Testing::TimeHelpers` は `rails_helper` で全 spec に include 済み）
 
@@ -39,8 +41,8 @@
 - **非表示**: 完了フィルタ・日付タブで隠す要素は `data-hidden-by-done` / `data-hidden-by-tab` 属性で表し、`application.css` のレイヤー外ルール（`display: none`）で消す。`hidden` 属性やクラスの付け外しで隠さない（メニュー本体と空状態の表示切替だけは `hidden` 属性）
 - `shared/_decomposition_status`（`status: :decomposing | :done | :failed`。ルートに `data-decomposition-status`）: S-4 見出し上・S-5 カードで同じマークアップ。未知の値は例外
 - `shared/_menu`（`id:` `items: [{ label:, href:, danger: }]` `placement: :down | :up` `label:`）＋ `menu_controller.js`: `href` 付き項目は `<a role="menuitem">`、無い項目は no-op ボタン。開閉状態はトリガーの `aria-expanded` とメニューの `hidden`。外側クリック・Esc（トリガーへフォーカスを戻す）で閉じ、↑↓/Home/End で項目移動。`id` は画面内で一意にする（サイドバーは `user-menu`）
-- `mocks/_content_header`（S-4・S-5 のヘッダー。左はブロックで渡す）＋ `completed_filter_controller.js`: 両画面とも `<header>` と本文を `data-controller="completed-filter"` のラッパーで包む。状態はトグルの `aria-pressed` だけ。ラッパー内の `[data-done]` を対象に、`data-done="true"` へ `data-hidden-by-done` を付け外しする。初期描画でもサーバ側で `data-hidden-by-done` を付けておく（JS 前のちらつき防止・request spec で検査できる）。`MutationObserver` で `data-done` / `data-hidden-by-tab` の変化と要素の追加に追随するので、完了チェックや日付タブ側から通知は不要。`data-completed-filter-target="empty"` の要素は「`[data-done]` の全件が `data-hidden-by-done`」のときだけ `hidden` を外す（＝全完了の空状態）。日付タブなど別理由の 0 件では出さないので、その理由の空状態は絞り込み側で別に持つ。`[data-done]` が 1 件も無い画面でも出さない
-- `shared/_empty_state`（`icon:` `title:` `body:` `action: { label:, href: }` `data:` `hidden:`）、`shared/_task_progress`（`done:` `total:`。`total` 0 は「—」でバーは `hidden`。ルートに `data-task-progress`、`total` > 0 なら `role="progressbar"` と `aria-valuenow/max`。S-4 では `subtasks_controller` が `data-task-progress-text/track/bar` を目印に同じ規則で書き換える）
+- `mocks/_content_header`（S-4・S-5 のヘッダー。左はブロックで渡す）＋ `completed_filter_controller.js`: 両画面とも `<header>` と本文を `data-controller="completed-filter"` のラッパーで包む。状態はトグルの `aria-pressed` だけ。ラッパー内の `[data-done]` を対象に、`data-done="true"` へ `data-hidden-by-done` を付け外しする。初期描画でもサーバ側で `data-hidden-by-done` を付けておく（JS 前のちらつき防止・request spec で検査できる）。`MutationObserver` で `data-done` / `data-hidden-by-tab` の変化と要素の追加に追随するので、完了チェックや日付タブ側から通知は不要。`data-completed-filter-target="empty"` の要素は「`[data-done]` の全件が `data-hidden-by-done`」のときだけ `hidden` を外す（＝全完了の空状態）。日付タブなど別理由の 0 件では出さないので、その理由の空状態は絞り込み側で別に持つ。`[data-done]` が 1 件も無い画面でも出さない。`data-completed-filter-target="group"`（S-5 の日付 `<section>`）は、中の `[data-done]` がすべて `data-hidden-by-done` のとき自身にも `data-hidden-by-done` を付けて見出しごと隠す（group 自身は `data-done` を持たないので件数に数えない。初期描画でもサーバ側で付ける）
+- `shared/_empty_state`（`icon:` `title:` `body:` `action: { label:, href: }` `data:` `hidden:`）、`shared/_task_progress`（`done:` `total:`。`total` 0 は「—」でバーは `hidden`。バー幅は 100% を上限に丸める。ルートに `data-task-progress`、`total` > 0 なら `role="progressbar"` と `aria-valuenow/max`。S-4 では `subtasks_controller` が `data-task-progress-text/track/bar` を目印に同じ規則で書き換える）
 - `_menu` の no-op 項目は押すと閉じてトリガーへフォーカスを戻す。Tab 等でフォーカスがメニュー外へ出ても閉じる。一覧で繰り返すときはトリガーの `label:` を「『対象名』のメニュー」、`id` を番号から作る（S-4 は `task-menu` / `subtask-menu-01`…）
 - S-4 サブタスクカード（`mocks/_subtask_card`）: 完了状態は `data-done` だけ。塗り・打ち消し線は `group-data-[done=true]:` の CSS で描き、`subtask_card_controller` は `data-done` と `aria-label`（「〜を完了にする」↔「〜を未完了に戻す」）だけを書き換える。完了で消えたカードからは次の完了チェックへフォーカスを移す。追加用 `<template>` は `number: "__NUMBER__"` で描画し、`subtasks#add` が `replaceAll` で置き換える
 - S-4 追加カード: `new_subtask` は `editable: true`・タイトル／補足は空。カードのタスク名・補足は `contenteditable="true"` ＋ `role="textbox"`、プレースホルダは `data-placeholder` を `empty:before:content-[attr(data-placeholder)]` で出す（`aria-placeholder` も同じ文言）。入力前の読み上げ名は `data-subtask-card-default-title-value`（「新しいタスク」）、入力すると `subtask_card#rename` が `titleValue` を更新し、完了チェックと行メニューのトリガー（カード内の `[data-menu-target='trigger']`）の `aria-label` を書き換える。消しきったときブラウザが残す `<br>` は消して `:empty` に戻す。`subtasks#add` は追加後にタスク名へフォーカスし、`subtasks:added` を dispatch する
@@ -50,5 +52,6 @@
 
 ## モック用クエリ（docs には書かない）
 - S-4 `/tasks/sample`: `?title=`（見出し。配列・ハッシュ（`?title[]=a`）は無視してサンプル名）、`?status=decomposing|done|failed`（既定・不正値は done）、`?due=`（ISO 8601 の日時。例 `2026-06-20T17:00`。キーが無ければサンプルの期限＝7 日後 17:00、空・不正値は「期限なし」）、`?all_done=1`（status=done のとき全サブタスク完了済み＝全完了の空状態で開く）、`?autoplay=0`（分解中から自動遷移しない）
+- S-5 `/tasks`: `?empty=1`（親タスクが 1 件も無いときの空状態「まだタスクがありません」。`"1"` 以外の値・配列は通常の一覧）
 - 分解中は `decomposition_progress_controller` が 3 秒後に `status=done`（`title` `due` は引き継ぐ）へ `Turbo.visit(..., { action: "replace" })`
 - 部品の単体検査は `spec/views/shared/`（view spec）
