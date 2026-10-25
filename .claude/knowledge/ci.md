@@ -11,3 +11,7 @@
 - rspec（request / helper）: ローカルで同じ spec を `docker compose run --rm web bundle exec rspec <path>` で再現する。日付依存の失敗は `travel_to` 漏れを疑う（CI は UTC、アプリは `Asia/Tokyo`）
 - rspec（system）: 失敗時は artifact `screenshots` に画面のスクリーンショットが上がる（`gh run download <run-id> -n screenshots`）。`Ferrum::BinaryNotFoundError` は Chrome が見つからない（「Locate Chrome」ステップの出力を確認）、`Ferrum::TimeoutError` / `ProcessTimeoutError` は起動の遅さなので `process_timeout` を見直す
 - デザイントークン spec: 「tailwind.css がありません」はビルド漏れ。値の不一致はトークンの値を変えたか、Tailwind の更新で圧縮後の表記が変わったかのどちらか
+
+## flaky
+- system spec が Google Fonts（fonts.googleapis.com / gstatic）のリクエスト保留で Ferrum タイムアウトすることがある（`smoke_spec`、#17 の CI、再実行で緑）。`gh run rerun <id> --failed` で再実行（2026-10-25）
+

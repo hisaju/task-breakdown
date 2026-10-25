@@ -27,6 +27,24 @@ class MocksController < ApplicationController
     render layout: "auth"
   end
 
+  # S-1/S-2 の送信。保存・認証は行わず、ログイン後のホーム（S-3）へ移る。
+  # POST で受けるので、入力値（パスワードを含む）が URL に残らない
+  def signup_submit
+    redirect_to root_path
+  end
+
+  def login_submit
+    redirect_to root_path
+  end
+
+  def terms
+    render layout: "auth"
+  end
+
+  def privacy
+    render layout: "auth"
+  end
+
   # モック用クエリ: ?title= ?status= ?due= ?all_done=1 ?autoplay=0（説明は .claude/knowledge/repo.md）
   def task_detail
     @title = string_param(:title).presence || SAMPLE_PARENT_TITLE
