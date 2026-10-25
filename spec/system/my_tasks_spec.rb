@@ -61,24 +61,31 @@ RSpec.describe "S-5 マイタスク", :js do
   end
 
   describe "キーボード操作" do
-    def box_shadow(element)
-      page.evaluate_script("getComputedStyle(arguments[0]).boxShadow", element)
+    # カードの box-shadow に 2px のリングがあるか。カードは transition 付きなので、変化し終わるまで待つ
+    def expect_ring(element, present:)
+      page.document.synchronize do
+        shadow = page.evaluate_script("getComputedStyle(arguments[0]).boxShadow", element)
+        ringed = shadow.include?("0px 0px 0px 2px")
+        raise Capybara::ExpectationNotMet, "box-shadow: #{shadow}" unless ringed == present
+
+        true
+      end
     end
 
     it "行のリンクにフォーカスするとカード全体をリングで囲み、メニューへのフォーカスでは囲まない" do
       card = row("見積もり作成")
-      expect(box_shadow(card)).to eq "none"
+      expect_ring(card, present: false)
 
       # キーボード操作（Tab）でのフォーカスにする（:focus-visible）
       trigger_of("経費申請").click
       page.send_keys(:escape)
       page.send_keys(:tab)
       expect(page).to have_css("section li[data-done] > a:focus", text: "見積もり作成")
-      expect(box_shadow(card)).not_to eq "none"
+      expect_ring(card, present: true)
 
       page.send_keys(:tab)
       expect(trigger_of("見積もり作成")).to match_css(":focus")
-      expect(box_shadow(card)).to eq "none"
+      expect_ring(card, present: false)
     end
   end
 
