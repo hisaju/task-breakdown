@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: カンバン（GitHub Projects）
+    url: https://github.com/users/hisaju/projects/8/views/2
+    about: 着手する Issue は Ready 列から選びます
+  - name: 開発の進め方
+    url: https://github.com/hisaju/task-breakdown/blob/main/docs/dev/first-contribution.md
+    about: Issue の選び方から Pull Request を出すまでの手順
