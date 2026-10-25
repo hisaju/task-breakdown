@@ -6,6 +6,9 @@ class MocksController < ApplicationController
   # S-4 で表示する分解結果の親タスク名（S-5 の同名の行は進捗をこのサンプルから導出する）
   SAMPLE_PARENT_TITLE = "社内提案資料を作成する".freeze
 
+  # S-4 の分解ステータス（?status=）。これ以外の値・未指定は :done
+  DECOMPOSITION_STATUSES = %w[decomposing done failed].freeze
+
   helper_method :sample_subtasks, :sample_parent_tasks, :date_tabs, :new_subtask
 
   def new_task
@@ -22,8 +25,14 @@ class MocksController < ApplicationController
     render layout: "auth"
   end
 
+  # モック用クエリ: ?title= ?status= ?due= ?all_done=1 ?autoplay=0（説明は .claude/knowledge/repo.md）
   def task_detail
     @title = params[:title].presence || SAMPLE_PARENT_TITLE
+    @status = params[:status].presence_in(DECOMPOSITION_STATUSES)&.to_sym || :done
+    @due = params.key?(:due) ? parse_due(params[:due]) : sample_parent_due
+    @subtasks = detail_subtasks
+    @autoplay = params[:autoplay] != "0"
+    @done_url = task_detail_mock_path(request.query_parameters.slice("title", "due").symbolize_keys.merge(status: "done"))
   end
 
   private
@@ -65,6 +74,26 @@ class MocksController < ApplicationController
     dated = sample_subtasks.filter_map { it[:due] }.sort.uniq { helpers.due_key(it) }
     [ { key: "all", label: "すべて" } ] +
       dated.map { { key: helpers.due_key(it), label: helpers.due_label(it, date_only: true) } }
+  end
+
+  # S-4 に並べるサブタスク。分解中・分解失敗は 0 件、?all_done=1 は全件完了済み
+  def detail_subtasks
+    return [] unless @status == :done
+    return sample_subtasks unless params[:all_done] == "1"
+
+    sample_subtasks.map { it.merge(done: true) }
+  end
+
+  # 親タスクの期限のサンプル（S-5 の同名の行と同じ）
+  def sample_parent_due
+    sample_parent_tasks.find { it[:title] == SAMPLE_PARENT_TITLE }[:due]
+  end
+
+  # ?due= は ISO 8601 の日時（S-3 の datetime-local の値。例: 2026-06-20T17:00）だけを受け付け、それ以外は期限なし
+  def parse_due(value)
+    Time.zone.iso8601(value.to_s)
+  rescue ArgumentError
+    nil
   end
 
   # 「タスクを追加」で末尾に足すカードの初期値

@@ -8,26 +8,70 @@
     <% end %>
   <% end %>
 
-  <div class="mx-auto w-full max-w-[850px] px-4 pb-16 pt-[64px]" data-controller="subtasks">
-    <div class="flex items-start justify-between">
-      <%= render "shared/decomposition_status", status: :done %>
-      <%= render "shared/icon", name: :more, class: "h-4 w-4 text-subtle" %>
+  <%= tag.div class: "mx-auto w-full max-w-[850px] px-4 pb-16 pt-[64px]",
+              data: { controller: class_names("subtasks", "decomposition-progress": @status == :decomposing) }
+                      .merge(@status == :decomposing ? { decomposition_progress_url_value: @done_url,
+                                                         decomposition_progress_delay_value: 3000,
+                                                         decomposition_progress_autoplay_value: @autoplay } : {}) do %>
+    <div class="flex items-center justify-between">
+      <%= render "shared/decomposition_status", status: @status %>
+      <%= render "shared/menu", id: "task-menu", label: "「#{@title}」のメニュー",
+                                items: [ { label: "編集" }, { label: "再分解" }, { label: "削除", danger: true } ] %>
     </div>
     <h1 class="mt-5 font-serif text-[40px] font-bold leading-[1.45] tracking-tight"><%= @title %></h1>
-    <p class="mt-4 text-[11px] text-muted">AIが実行しやすいステップに分解しました。内容は自由に編集できます。</p>
+    <p class="mt-4 text-[11px] text-muted">
+      <%= { done: "AIが実行しやすいステップに分解しました。内容は自由に編集できます。",
+            decomposing: "AI が実行しやすい手順に分解しています。通常 30 秒以内に完了します。",
+            failed: "分解に失敗しました。再度お試しください" }.fetch(@status) %>
+    </p>
 
-    <div class="mt-12 flex border-b border-line text-[11px] font-semibold" role="tablist">
-      <% date_tabs.each_with_index do |tab, i| %>
-        <button type="button" role="tab" aria-selected="<%= i.zero? %>" data-due-key="<%= tab[:key] %>"
-                class="<%= class_names("-mb-px px-4 py-3", i.zero? ? "border-b-2 border-brand text-brand" : "text-muted hover:text-ink") %>"><%= tab[:label] %></button>
-      <% end %>
+    <div class="mt-6 flex items-center gap-8">
+      <p class="flex items-center gap-1.5 text-2xs text-muted" data-parent-due>
+        <%= render "shared/icon", name: :calendar, class: "h-3.5 w-3.5" %><%= due_time_tag(@due) %>
+      </p>
+      <div class="w-40" data-subtasks-target="progress">
+        <%= render "shared/task_progress", done: @subtasks.count { it[:done] }, total: @subtasks.size %>
+      </div>
     </div>
 
-    <ol class="mt-4 space-y-2.5" data-subtasks-target="list">
-      <% sample_subtasks.each.with_index(1) do |subtask, number| %>
-        <%= render "mocks/subtask_card", subtask:, number: %>
-      <% end %>
-    </ol>
+    <% if @status == :failed %>
+      <button type="button" data-mock="noop"
+              class="mb-10 mt-6 rounded-lg bg-brand px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-brand-hover">再分解する</button>
+    <% end %>
+
+    <% if @status == :done %>
+      <div class="mt-12 flex border-b border-line text-[11px] font-semibold" role="tablist">
+        <% date_tabs.each_with_index do |tab, i| %>
+          <button type="button" role="tab" aria-selected="<%= i.zero? %>" data-due-key="<%= tab[:key] %>"
+                  class="<%= class_names("-mb-px px-4 py-3", i.zero? ? "border-b-2 border-brand text-brand" : "text-muted hover:text-ink") %>"><%= tab[:label] %></button>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if @status == :decomposing %>
+      <div class="mt-12 space-y-2.5" aria-hidden="true" data-skeleton>
+        <% 3.times do %>
+          <div class="flex animate-pulse gap-4 rounded-xl border border-line bg-white px-5 py-5">
+            <span class="mt-3 h-6 w-6 shrink-0 rounded-full bg-canvas"></span>
+            <div class="flex-1 space-y-3 pt-1">
+              <span class="block h-3 w-24 rounded bg-canvas"></span>
+              <span class="block h-3.5 w-2/3 rounded bg-canvas"></span>
+              <span class="block h-3 w-1/2 rounded bg-canvas"></span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <ol class="mt-4 space-y-2.5 empty:hidden" data-subtasks-target="list"><% @subtasks.each.with_index(1) do |subtask, number| %>
+        <%= render "mocks/subtask_card", subtask:, number: format("%02d", number) %>
+      <% end %></ol>
+
+    <%= render "shared/empty_state", icon: :inbox, title: "すべての手順が完了しました",
+                                     body: "完了した手順は「完了済みを表示」で確認できます。",
+                                     action: { label: "マイタスクへ", href: my_tasks_mock_path },
+                                     data: { completed_filter_target: "empty" },
+                                     hidden: !(@subtasks.any? && @subtasks.all? { it[:done] }) %>
 
     <template data-subtasks-target="template">
       <%= render "mocks/subtask_card", subtask: new_subtask, number: "__NUMBER__" %>
@@ -38,5 +82,5 @@
       <%= render "shared/icon", name: :plus, class: "h-3.5 w-3.5" %>
       タスクを追加
     </button>
-  </div>
+  <% end %>
 </div>
