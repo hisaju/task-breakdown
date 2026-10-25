@@ -1,4 +1,4 @@
-<aside class="sticky top-0 flex h-screen w-[232px] shrink-0 flex-col border-r border-line bg-white px-[18px] py-7">
+<aside class="sticky top-0 z-20 flex h-screen w-[232px] shrink-0 flex-col border-r border-line bg-white px-[18px] py-7">
   <%= link_to root_path, class: "flex items-center gap-2.5 px-2.5" do %>
     <span class="grid h-[30px] w-[30px] place-items-center rounded-lg bg-brand text-white">
       <%= render "shared/icon", name: :sparkles, class: "h-4 w-4" %>
@@ -18,14 +18,14 @@
     <% end %>
   </nav>
 
-  <div class="mt-auto flex items-center gap-2.5 border-t border-line px-2 pt-4">
-    <span class="grid h-[34px] w-[34px] place-items-center rounded-full bg-avatar text-[11px] font-semibold text-white">YU</span>
-    <div class="flex-1 leading-tight">
-      <p class="text-xs font-semibold">山田 優</p>
-      <p class="text-[11px] text-subtle">フリープラン</p>
+  <%# ユーザーメニューは上に開く。aside 内に収め、メインより手前（z-30）に重ねる %>
+  <div class="relative mt-auto flex items-center gap-2.5 border-t border-line px-2 pt-4">
+    <span class="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-avatar text-[11px] font-semibold text-white">YU</span>
+    <div class="min-w-0 flex-1 leading-tight">
+      <p class="truncate text-xs font-semibold">山田 優</p>
+      <p class="truncate text-[11px] text-subtle" title="yu.yamada@example.com">yu.yamada@example.com</p>
     </div>
-    <%= link_to login_mock_path, title: "ログアウト", aria: { label: "ログアウト" }, class: "text-subtle hover:text-ink" do %>
-      <%= render "shared/icon", name: :more, class: "h-4 w-4" %>
-    <% end %>
+    <%= render "shared/menu", id: "user-menu", label: "ユーザーメニュー", placement: :up,
+                              items: [ { label: "ログアウト", href: login_mock_path } ] %>
   </div>
 </aside>

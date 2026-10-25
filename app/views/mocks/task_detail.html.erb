@@ -1,47 +1,42 @@
 <% content_for :title, "#{@title} | Tasklet" %>
 
-<header class="flex h-[68px] items-center justify-between border-b border-line bg-white px-10">
-  <nav class="flex items-center gap-3 text-[11px] text-muted" aria-label="パンくず">
-    <%= link_to my_tasks_mock_path, aria: { label: "マイタスクに戻る" }, class: "mr-2 hover:text-ink" do %>
-      <%= render "shared/icon", name: :chevron_left, class: "h-4 w-4" %>
+<div class="flex min-h-screen flex-col" data-controller="completed-filter">
+  <%= render "mocks/content_header" do %>
+    <%= link_to my_tasks_mock_path, aria: { label: "マイタスクに戻る" },
+                class: "flex items-center gap-1.5 text-[13px] font-semibold text-muted hover:text-ink" do %>
+      <%= render "shared/icon", name: :chevron_left, class: "h-4 w-4" %>マイタスク
     <% end %>
-    <%= link_to "マイタスク", my_tasks_mock_path, class: "hover:text-ink" %>
-    <span class="text-subtle">/</span>
-    <span>タスク詳細</span>
-  </nav>
-  <button type="button" class="rounded-lg border border-line px-3 py-2.5 text-2xs text-ink/80 hover:bg-canvas">完了済みを表示</button>
-</header>
+  <% end %>
 
-<div class="mx-auto max-w-[850px] px-4 pb-16 pt-[64px]" data-controller="subtasks">
-  <div class="flex items-start justify-between">
-    <p class="flex items-center gap-2 text-2xs font-semibold text-brand">
-      <span class="h-1.5 w-1.5 rounded-full bg-brand-dot"></span>分解完了
-    </p>
-    <%= render "shared/icon", name: :more, class: "h-4 w-4 text-subtle" %>
+  <div class="mx-auto w-full max-w-[850px] px-4 pb-16 pt-[64px]" data-controller="subtasks">
+    <div class="flex items-start justify-between">
+      <%= render "shared/decomposition_status", status: :done %>
+      <%= render "shared/icon", name: :more, class: "h-4 w-4 text-subtle" %>
+    </div>
+    <h1 class="mt-5 font-serif text-[40px] font-bold leading-[1.45] tracking-tight"><%= @title %></h1>
+    <p class="mt-4 text-[11px] text-muted">AIが実行しやすいステップに分解しました。内容は自由に編集できます。</p>
+
+    <div class="mt-12 flex border-b border-line text-[11px] font-semibold" role="tablist">
+      <% date_tabs.each_with_index do |tab, i| %>
+        <button type="button" role="tab" aria-selected="<%= i.zero? %>" data-due-key="<%= tab[:key] %>"
+                class="<%= class_names("-mb-px px-4 py-3", i.zero? ? "border-b-2 border-brand text-brand" : "text-muted hover:text-ink") %>"><%= tab[:label] %></button>
+      <% end %>
+    </div>
+
+    <ol class="mt-4 space-y-2.5" data-subtasks-target="list">
+      <% sample_subtasks.each.with_index(1) do |subtask, number| %>
+        <%= render "mocks/subtask_card", subtask:, number: %>
+      <% end %>
+    </ol>
+
+    <template data-subtasks-target="template">
+      <%= render "mocks/subtask_card", subtask: new_subtask, number: "__NUMBER__" %>
+    </template>
+
+    <button type="button" data-action="subtasks#add"
+            class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line-dashed py-4 text-[11px] font-semibold text-muted hover:bg-white">
+      <%= render "shared/icon", name: :plus, class: "h-3.5 w-3.5" %>
+      タスクを追加
+    </button>
   </div>
-  <h1 class="mt-5 font-serif text-[40px] font-bold leading-[1.45] tracking-tight"><%= @title %></h1>
-  <p class="mt-4 text-[11px] text-muted">AIが実行しやすいステップに分解しました。内容は自由に編集できます。</p>
-
-  <div class="mt-12 flex border-b border-line text-[11px] font-semibold" role="tablist">
-    <% date_tabs.each_with_index do |tab, i| %>
-      <button type="button" role="tab" aria-selected="<%= i.zero? %>" data-due-key="<%= tab[:key] %>"
-              class="<%= class_names("-mb-px px-4 py-3", i.zero? ? "border-b-2 border-brand text-brand" : "text-muted hover:text-ink") %>"><%= tab[:label] %></button>
-    <% end %>
-  </div>
-
-  <ol class="mt-4 space-y-2.5" data-subtasks-target="list">
-    <% sample_subtasks.each.with_index(1) do |subtask, number| %>
-      <%= render "mocks/subtask_card", subtask:, number: %>
-    <% end %>
-  </ol>
-
-  <template data-subtasks-target="template">
-    <%= render "mocks/subtask_card", subtask: new_subtask, number: "__NUMBER__" %>
-  </template>
-
-  <button type="button" data-action="subtasks#add"
-          class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line-dashed py-4 text-[11px] font-semibold text-muted hover:bg-white">
-    <%= render "shared/icon", name: :plus, class: "h-3.5 w-3.5" %>
-    タスクを追加
-  </button>
 </div>

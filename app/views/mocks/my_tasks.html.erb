@@ -1,61 +1,49 @@
 <% content_for :title, "マイタスク | Tasklet" %>
 
-<header class="flex h-[68px] items-center justify-between border-b border-line bg-white px-10">
-  <p class="text-[13px] font-semibold">マイタスク</p>
-  <button type="button" class="rounded-lg border border-line px-3 py-2.5 text-2xs text-ink/80 hover:bg-canvas">完了済みを表示</button>
-</header>
-
-<div class="mx-auto max-w-[850px] px-4 pb-16 pt-[64px]">
-  <p class="text-[11px] font-semibold tracking-[0.12em] text-brand-dot">MY TASKS</p>
-  <h1 class="mt-3 font-serif text-[40px] font-bold leading-[1.45] tracking-tight">マイタスク</h1>
-  <p class="mt-4 text-[11px] text-muted">期限の近い順に並んでいます。タスクを選ぶと、分解した手順を確認できます。</p>
-
-  <% sample_parent_tasks.group_by { due_key(it[:due]) }.each_value do |tasks| %>
-    <section class="mt-10">
-      <h2 class="mb-3 flex items-center gap-2 text-[11px] font-semibold text-muted">
-        <% if tasks.first[:due] %>
-          <%= render "shared/icon", name: :calendar, class: "h-3.5 w-3.5" %>
-        <% end %>
-        <%= due_label(tasks.first[:due], date_only: true) %>
-      </h2>
-      <ul class="space-y-2.5">
-        <% tasks.each do |task| %>
-          <li data-done="<%= task[:total].positive? && task[:done] == task[:total] %>" data-due-key="<%= due_key(task[:due]) %>">
-            <%= link_to task_detail_mock_path(title: task[:title]),
-                        class: "group flex items-center gap-6 rounded-xl border border-line bg-white px-6 py-5 transition hover:shadow-card" do %>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-3 text-2xs">
-                  <% case task[:status] %>
-                  <% when :decomposing %>
-                    <span class="flex items-center gap-1.5 font-semibold text-accent"><span class="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"></span>分解中</span>
-                  <% when :failed %>
-                    <span class="flex items-center gap-1.5 font-semibold text-danger"><span class="h-1.5 w-1.5 rounded-full bg-danger-dot"></span>分解失敗</span>
-                  <% else %>
-                    <span class="flex items-center gap-1.5 font-semibold text-brand"><span class="h-1.5 w-1.5 rounded-full bg-brand-dot"></span>分解完了</span>
-                  <% end %>
-                  <span class="flex items-center gap-1 text-muted">
-                    <%= render "shared/icon", name: :calendar, class: "h-3 w-3" %><%= due_time_tag(task[:due]) %>
-                  </span>
-                </div>
-                <p class="mt-2.5 font-serif text-[17px] font-bold group-hover:text-brand"><%= task[:title] %></p>
-              </div>
-
-              <div class="w-40 shrink-0 text-right">
-                <% if task[:total].positive? %>
-                  <p class="text-2xs text-muted"><%= task[:done] %>/<%= task[:total] %> 完了</p>
-                  <div class="mt-2 h-1.5 rounded-full bg-brand-soft">
-                    <div class="h-1.5 rounded-full bg-brand" style="width: <%= task[:done] * 100 / task[:total] %>%"></div>
-                  </div>
-                <% else %>
-                  <p class="text-2xs text-subtle">—</p>
-                <% end %>
-              </div>
-
-              <%= render "shared/icon", name: :chevron_right, class: "h-4 w-4 shrink-0 text-subtle group-hover:text-brand" %>
-            <% end %>
-          </li>
-        <% end %>
-      </ul>
-    </section>
+<div class="flex min-h-screen flex-col" data-controller="completed-filter">
+  <%= render "mocks/content_header" do %>
+    <p class="text-[13px] font-semibold">マイタスク</p>
   <% end %>
+
+  <div class="mx-auto w-full max-w-[850px] px-4 pb-16 pt-[64px]">
+    <p class="text-[11px] font-semibold tracking-[0.12em] text-brand-dot">MY TASKS</p>
+    <h1 class="mt-3 font-serif text-[40px] font-bold leading-[1.45] tracking-tight">マイタスク</h1>
+    <p class="mt-4 text-[11px] text-muted">期限の近い順に並んでいます。タスクを選ぶと、分解した手順を確認できます。</p>
+
+    <% sample_parent_tasks.group_by { due_key(it[:due]) }.each_value do |tasks| %>
+      <section class="mt-10">
+        <h2 class="mb-3 flex items-center gap-2 text-[11px] font-semibold text-muted">
+          <% if tasks.first[:due] %>
+            <%= render "shared/icon", name: :calendar, class: "h-3.5 w-3.5" %>
+          <% end %>
+          <%= due_label(tasks.first[:due], date_only: true) %>
+        </h2>
+        <ul class="space-y-2.5">
+          <% tasks.each do |task| %>
+            <% done = task[:total].positive? && task[:done] == task[:total] %>
+            <li data-done="<%= done %>" <%= "data-hidden-by-done" if done %> data-due-key="<%= due_key(task[:due]) %>">
+              <%= link_to task_detail_mock_path(title: task[:title]),
+                          class: "group flex items-center gap-6 rounded-xl border border-line bg-white px-6 py-5 transition hover:shadow-card" do %>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-3">
+                    <%= render "shared/decomposition_status", status: task[:status] %>
+                    <span class="flex items-center gap-1 text-2xs text-muted">
+                      <%= render "shared/icon", name: :calendar, class: "h-3 w-3" %><%= due_time_tag(task[:due]) %>
+                    </span>
+                  </div>
+                  <p class="<%= class_names("mt-2.5 font-serif text-[17px] font-bold group-hover:text-brand", "text-muted line-through": done) %>"><%= task[:title] %></p>
+                </div>
+
+                <div class="w-40 shrink-0 text-right">
+                  <%= render "shared/task_progress", done: task[:done], total: task[:total] %>
+                </div>
+
+                <%= render "shared/icon", name: :chevron_right, class: "h-4 w-4 shrink-0 text-subtle group-hover:text-brand" %>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
+  </div>
 </div>

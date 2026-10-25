@@ -1,0 +1,7 @@
+<%# S-4・S-5 のヘッダーバー。左はブロックで渡す（現在地または戻り先を 1 つだけ）、右は「完了済みを表示／隠す」 %>
+<header class="flex h-[68px] shrink-0 items-center justify-between border-b border-line bg-white px-10">
+  <%= yield %>
+  <button type="button" aria-pressed="false"
+          data-completed-filter-target="toggle" data-action="completed-filter#toggle"
+          class="rounded-lg border border-line px-3 py-2.5 text-2xs text-ink/80 hover:bg-canvas">完了済みを表示</button>
+</header>
