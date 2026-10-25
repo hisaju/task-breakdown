@@ -139,4 +139,104 @@ RSpec.describe "画面モック" do
       expect(row.text).to include("3/3 完了", "分解完了")
     end
   end
+
+  describe "共通部品" do
+    before do
+      travel_to(Time.zone.local(2026, 6, 20, 10, 0))
+    end
+
+    def status_badge(path, params = {})
+      get path, params: params
+      html.css("[data-decomposition-status]")
+    end
+
+    it "S-4 と S-5 の分解完了ステータスが同じマークアップになる" do
+      detail = status_badge("/tasks/sample").first.to_html
+      list = status_badge("/tasks").find { it["data-decomposition-status"] == "done" }.to_html
+
+      expect(detail).to eq list
+      expect(detail).to include("分解完了", "text-2xs")
+    end
+
+    it "ステータスは 3 状態を表示し、失敗は danger、分解中は pulse" do
+      badges = status_badge("/tasks").to_h { [ it["data-decomposition-status"], it ] }
+
+      expect(badges.keys).to contain_exactly("done", "decomposing", "failed")
+      expect(badges["failed"].text.strip).to eq "分解失敗"
+      expect(badges["failed"]["class"]).to include("text-danger")
+      expect(badges["decomposing"].text.strip).to eq "分解中"
+      expect(badges["decomposing"].to_html).to include("animate-pulse")
+    end
+
+    it "S-4 のヘッダーはマイタスクへのリンク 1 つだけで、パンくずを持たない" do
+      get "/tasks/sample"
+
+      links = html.css("header a[href='/tasks']")
+      expect(links.size).to eq 1
+      expect(links.first["aria-label"]).to eq "マイタスクに戻る"
+      expect(links.first.text.strip).to eq "マイタスク"
+      expect(html.at_css("nav[aria-label='パンくず']")).to be_nil
+    end
+
+    it "S-5 のヘッダー左は現在地「マイタスク」でリンクではない" do
+      get "/tasks"
+
+      expect(html.at_css("header").text).to include("マイタスク")
+      expect(html.css("header a")).to be_empty
+    end
+
+    %w[/tasks /tasks/sample].each do |path|
+      it "#{path} はヘッダーと本文を完了フィルタのラッパーで包み、トグルは初期 aria-pressed=false" do
+        get path
+
+        wrapper = html.at_css("main > [data-controller~='completed-filter']")
+        expect(wrapper).to be_present
+        expect(wrapper.at_css("> header")).to be_present
+        toggle = wrapper.at_css("header button[aria-pressed]")
+        expect(toggle["aria-pressed"]).to eq "false"
+        expect(toggle["data-action"]).to include("completed-filter#toggle")
+        expect(toggle.text.strip).to eq "完了済みを表示"
+      end
+    end
+
+    it "完了済みの要素は初期描画で data-hidden-by-done を持ち、未完了は持たない" do
+      %w[/tasks /tasks/sample].each do |path|
+        get path
+
+        done = html.css("[data-done='true']")
+        expect(done).not_to be_empty
+        expect(done.map { it.key?("data-hidden-by-done") }).to all(be true)
+        expect(html.css("[data-done='false'][data-hidden-by-done]")).to be_empty
+      end
+    end
+
+    it "サイドバーのユーザーメニューはログアウトを /login へのリンクで持つ" do
+      get "/tasks"
+
+      menu = html.at_css("aside [role='menu']")
+      trigger = html.at_css("aside button[aria-haspopup='menu']")
+      expect(trigger["aria-controls"]).to eq menu["id"]
+      expect(trigger["aria-expanded"]).to eq "false"
+      items = menu.css("[role='menuitem']")
+      expect(items.map { it.text.strip }).to eq [ "ログアウト" ]
+      expect(items.first.name).to eq "a"
+      expect(items.first["href"]).to eq "/login"
+    end
+
+    it "サイドバーはプラン名ではなくメールアドレスを表示する" do
+      %w[/ /tasks /tasks/sample].each do |path|
+        get path
+
+        expect(response.body).not_to include("フリープラン")
+        expect(html.at_css("aside").text).to include("yu.yamada@example.com")
+      end
+    end
+
+    it "S-5 の進捗は n/m 完了、サブタスクが無ければ「—」" do
+      get "/tasks"
+
+      progress = html.css("[data-task-progress]").map { it.text.squish }
+      expect(progress).to include("3/3 完了", "1/6 完了", "—")
+    end
+  end
 end
