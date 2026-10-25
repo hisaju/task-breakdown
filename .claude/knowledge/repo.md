@@ -22,7 +22,9 @@
 - S-5「社内提案資料を作成する」の `done/total` は `sample_subtasks` から導出。他の行の進捗は固定値
 - S-5 の親行 `<li>` は `data-done`（`total > 0` かつ `done == total` で "true"）と `data-due-key` を持つ。現状 "true" は「経費精算の締め確認」（3 日後 17:00）だけで、単独の日付グループにしてある（完了済みを隠すと見出しごと隠れる様子を確かめられる）
 - S-5 の行は `<li>` がカード（S-4 サブタスクカードと同じ `px-5 py-5 gap-4 rounded-xl`、ホバーで `shadow-card`）。中は `<a>`（ステータス・期限・タイトル・進捗）と行メニュー（`_menu`、`id` は `parent-task-menu-01`… の通し番号、`label` は「『親タスク名』のメニュー」）の兄弟。リンクの中にボタンを入れない
-- S-5 の行リンクは `task_detail_mock_path(title:, status:)`。S-4 は行のステータスで開くが、サブタスク・期限はどの行でも同じサンプル
+- S-5 の行リンクは `task_detail_mock_path(title:, status:, due:)`（`due` は `%Y-%m-%dT%H:%M`、期限なしは空文字）。S-4 は行の状態・期限で開き、サブタスクはどの行でも同じサンプル。行の期限表示は `data-row-due`
+- S-5 の行は stretched link: `<li>` が `relative`、`<a>` の `after:absolute after:inset-0` でカード全面を当たり判定にする。メニュー（`_menu` のルートは `relative`）は DOM 上でリンクより後ろなので z-index 無しで前面に出る。行メニューに `z-10` 等を付けると、開いたドロップダウンが次の行のメニューの下に潜るので付けない
+- S-4 のサブタスク期限（`detail_subtasks`）と追加カード（`new_subtask`）の期限は、親の期限（`@due`）より後なら親の期限に丸める。日付タブは丸めた後の `@subtasks` から作る
 - 期限の表示はすべて `DueDateHelper`（`due_label` / `due_key` / `due_time_tag`）を通す。期限は `<time datetime>` で出力され、spec はこれを拾って書式を検査する。カードとタブには `data-due-key`（today / tomorrow / YYYY-MM-DD / none）が付く
 - 日付に依存する spec は `travel_to` で固定する（`ActiveSupport::Testing::TimeHelpers` は `rails_helper` で全 spec に include 済み）
 
