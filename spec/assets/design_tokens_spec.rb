@@ -44,7 +44,8 @@ RSpec.describe "デザイントークン" do
     expect(css).to include("hover\\:shadow-card:hover")
   end
 
-  it "リンク・ボタンのキーボードフォーカスに ring-brand-soft を表示する" do
-    expect(css).to match(/a\[href\],button.*?:focus-visible\{[^}]*var\(--color-brand-soft\)/)
+  # 白地・canvas 地で非テキストのコントラスト 3:1 以上（#66866b は白に対して約 4.0:1）
+  it "リンク・ボタンのキーボードフォーカスに ring-brand-dot を表示する" do
+    expect(css).to match(/a\[href\],button.*?:focus-visible\{[^}]*var\(--color-brand-dot\)/)
   end
 end

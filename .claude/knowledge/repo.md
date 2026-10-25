@@ -12,7 +12,7 @@
 - 影: `shadow-card`（カードのホバー）`shadow-float`（フォームカード）。文字: `text-2xs`（10px。最小サイズ）
 - Tailwind v4 は使われたトークンだけ CSS に出す（未使用の `danger-soft` はビルド結果に出ない）。ビルドは圧縮され `rgba(32,36,33,0.18)` → `#2024212e`、`0.213` → `.213` になる
 - `spec/assets/design_tokens_spec.rb` がビルド後の CSS（`app/assets/builds/tailwind.css`）を読んで値を検査する。事前に `docker compose run --rm css bin/rails tailwindcss:build` が必要（css コンテナが watch 中なら最新）
-- フォーカス表示はビューにクラスを書かず、`@layer base` の `:where(a[href], button, [role=tab], [role=menuitem]):focus-visible` で `ring-2 ring-brand-soft` を一括適用している
+- フォーカス表示はビューにクラスを書かず、`@layer base` の `:where(a[href], button, [role=tab], [role=menuitem]):focus-visible` で `ring-2 ring-brand-dot` を一括適用している（`brand-soft` は白地でコントラスト約 1.1:1 で見えないため使わない。入力欄の `focus:ring-brand-soft` は枠線 `border-brand` と併用なので別扱い）
 - `<head>` は `layouts/_head.html.erb` に集約（両レイアウトが render）。画面タイトルは `content_for :title`、追加タグは `content_for :head`
 
 ## サンプルデータ（`MocksController`）
@@ -20,6 +20,7 @@
 - 期限は相対日時（今日 12:00・17:00・18:00／明日 12:00／7 日後 17:00／nil）。サブタスクの期限は親の期限を超えない（「社内提案資料を作成する」は 7 日後 17:00）
 - サブタスク 6 件のうち 1 件目が完了済み（`done: true`）、6 件目が期限なし。親タスクに全完了（「経費精算の締め確認」3/3）を含む
 - S-5「社内提案資料を作成する」の `done/total` は `sample_subtasks` から導出。他の行の進捗は固定値
+- S-5 の親行 `<li>` は `data-done`（`total > 0` かつ `done == total` で "true"）と `data-due-key` を持つ。現状 "true" は「経費精算の締め確認」だけ
 - 期限の表示はすべて `DueDateHelper`（`due_label` / `due_key` / `due_time_tag`）を通す。期限は `<time datetime>` で出力され、spec はこれを拾って書式を検査する。カードとタブには `data-due-key`（today / tomorrow / YYYY-MM-DD / none）が付く
 - 日付に依存する spec は `travel_to` で固定する（`ActiveSupport::Testing::TimeHelpers` は `rails_helper` で全 spec に include 済み）
 

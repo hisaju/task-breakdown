@@ -122,6 +122,16 @@ RSpec.describe "画面モック" do
       expect(html.css("section").last.text).to include("引っ越しの準備をする")
     end
 
+    it "親行は全完了のときだけ data-done=true を持ち、期限の data-due-key を持つ" do
+      get "/tasks"
+
+      rows = html.css("section li")
+      done_titles = rows.select { it["data-done"] == "true" }.map { it.at_css("a p.font-serif").text.strip }
+      expect(done_titles).to eq [ "経費精算の締め確認" ]
+      expect(rows.map { it["data-done"] }).to all(be_in(%w[true false]))
+      expect(rows.map { it["data-due-key"] }.uniq).to eq %w[today tomorrow 2026-06-27 none]
+    end
+
     it "全完了の親タスク「経費精算の締め確認」を 3/3 完了で表示する" do
       get "/tasks"
 

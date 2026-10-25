@@ -20,7 +20,7 @@
       </h2>
       <ul class="space-y-2.5">
         <% tasks.each do |task| %>
-          <li>
+          <li data-done="<%= task[:total].positive? && task[:done] == task[:total] %>" data-due-key="<%= due_key(task[:due]) %>">
             <%= link_to task_detail_mock_path(title: task[:title]),
                         class: "group flex items-center gap-6 rounded-xl border border-line bg-white px-6 py-5 transition hover:shadow-card" do %>
               <div class="flex-1 min-w-0">

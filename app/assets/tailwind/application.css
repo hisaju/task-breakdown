@@ -30,9 +30,10 @@
   --shadow-float: 0 12px 40px -12px rgba(32, 36, 33, 0.12); /* 浮いたフォームカード */
 }
 
-/* キーボード操作時のフォーカス表示をリンク・ボタン全体で揃える */
+/* キーボード操作時のフォーカス表示をリンク・ボタン全体で揃える。
+   白地・canvas 地でも見えるよう、非テキストのコントラスト 3:1 以上の brand-dot を使う */
 @layer base {
   :where(a[href], button, [role="tab"], [role="menuitem"]):focus-visible {
-    @apply ring-2 ring-brand-soft;
+    @apply ring-2 ring-brand-dot;
   }
 }
