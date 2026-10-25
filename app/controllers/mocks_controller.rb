@@ -14,7 +14,9 @@ class MocksController < ApplicationController
   def new_task
   end
 
+  # モック用クエリ: ?empty=1（タスクが 1 件も無いときの空状態。説明は .claude/knowledge/repo.md）
   def my_tasks
+    @parent_tasks = params[:empty] == "1" ? [] : sample_parent_tasks
   end
 
   def signup
@@ -57,13 +59,14 @@ class MocksController < ApplicationController
   end
 
   # S-5 の親タスク（期限の近い順、期限なしは末尾）。
-  # SAMPLE_PARENT_TITLE の進捗は sample_subtasks から導出し、他の行は固定値
+  # SAMPLE_PARENT_TITLE の進捗は sample_subtasks から導出し、他の行は固定値。
+  # 全完了の「経費精算の締め確認」は単独の日付グループに置く（完了済みを隠すと見出しごと隠れる）
   def sample_parent_tasks
     @sample_parent_tasks ||= [
-      { title: "経費精算の締め確認", due: today_at(12), status: :done, done: 3, total: 3 },
       { title: "経費申請", due: today_at(17), status: :decomposing, done: 0, total: 0 },
       { title: "見積もり作成", due: today_at(18), status: :done, done: 1, total: 3 },
       { title: "起案書作成", due: days_later_at(1, 12), status: :done, done: 0, total: 6 },
+      { title: "経費精算の締め確認", due: days_later_at(3, 17), status: :done, done: 3, total: 3 },
       { title: SAMPLE_PARENT_TITLE, due: days_later_at(7, 17), status: :done,
         done: sample_subtasks.count { it[:done] }, total: sample_subtasks.size },
       { title: "引っ越しの準備をする", due: nil, status: :failed, done: 0, total: 0 }
