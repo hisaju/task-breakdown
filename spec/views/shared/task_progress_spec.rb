@@ -28,4 +28,10 @@ RSpec.describe "shared/_task_progress" do
     expect(root["role"]).to be_nil
     expect(root["aria-valuenow"]).to be_nil
   end
+
+  it "done が total を超えてもバーの幅は 100% に丸める" do
+    render partial: "shared/task_progress", locals: { done: 5, total: 4 }
+
+    expect(doc.at_css("[data-task-progress-bar]")["style"]).to include("width: 100%")
+  end
 end
