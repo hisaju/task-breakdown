@@ -1,21 +1,22 @@
-<li class="group flex gap-4 rounded-xl border border-line bg-white px-5 py-5 transition hover:shadow-[0_8px_24px_-12px_rgba(32,36,33,0.18)]"
+<li class="group flex gap-4 rounded-xl border border-line bg-white px-5 py-5 transition hover:shadow-card"
+    data-done="<%= subtask[:done] %>" data-due-key="<%= due_key(subtask[:due]) %>"
     data-controller="subtask-card" data-subtask-card-done-class="opacity-50">
   <button type="button" data-action="subtask-card#toggle" aria-label="「<%= subtask[:title] %>」を完了にする"
-          class="mt-3 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-[#bbbeba] text-[11px] text-white hover:border-brand"
+          class="mt-3 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-line-strong text-[11px] text-white hover:border-brand"
           data-subtask-card-target="check"></button>
   <div class="flex-1 min-w-0">
-    <div class="flex items-center gap-3 text-[9px]">
+    <div class="flex items-center gap-3 text-2xs">
       <% if subtask[:kind] == :special %>
         <span class="rounded bg-accent-soft px-1.5 py-1 font-semibold text-accent">特殊タスク</span>
       <% else %>
         <span class="rounded bg-brand-soft px-1.5 py-1 font-semibold text-brand">基本タスク</span>
       <% end %>
       <span class="flex items-center gap-1 text-muted">
-        <%= render "shared/icon", name: :calendar, class: "h-3 w-3" %><%= subtask[:due] %>
+        <%= render "shared/icon", name: :calendar, class: "h-3 w-3" %><%= due_time_tag(subtask[:due]) %>
       </span>
     </div>
     <p class="mt-2.5 text-[13px] font-semibold" data-subtask-card-target="title"><%= subtask[:title] %></p>
-    <p class="mt-2 text-[10px] text-muted"><%= subtask[:description] %></p>
+    <p class="mt-2 text-2xs text-muted"><%= subtask[:description] %></p>
   </div>
   <div class="flex items-start gap-5 pt-1">
     <span class="font-serif text-[11px] text-subtle"><%= number.is_a?(Integer) ? format("%02d", number) : number %></span>

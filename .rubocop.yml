@@ -22,6 +22,7 @@ RSpec/DescribeClass:
   Exclude:
     - "spec/requests/**/*"
     - "spec/system/**/*"
+    - "spec/assets/**/*"
 RSpec/MultipleMemoizedHelpers:
   Max: 8
 RSpec/NestedGroups:

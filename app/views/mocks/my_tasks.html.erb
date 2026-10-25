@@ -2,40 +2,39 @@
 
 <header class="flex h-[68px] items-center justify-between border-b border-line bg-white px-10">
   <p class="text-[13px] font-semibold">マイタスク</p>
-  <button type="button" class="rounded-lg border border-line px-3 py-2.5 text-[10px] text-ink/80 hover:bg-canvas">完了済みを表示</button>
+  <button type="button" class="rounded-lg border border-line px-3 py-2.5 text-2xs text-ink/80 hover:bg-canvas">完了済みを表示</button>
 </header>
 
 <div class="mx-auto max-w-[850px] px-4 pb-16 pt-[64px]">
   <p class="text-[11px] font-semibold tracking-[0.12em] text-brand-dot">MY TASKS</p>
-  <h1 class="mt-3 font-serif text-[40px] font-bold tracking-tight">マイタスク</h1>
+  <h1 class="mt-3 font-serif text-[40px] font-bold leading-[1.45] tracking-tight">マイタスク</h1>
   <p class="mt-4 text-[11px] text-muted">期限の近い順に並んでいます。タスクを選ぶと、分解した手順を確認できます。</p>
 
-  <% MocksController::SAMPLE_PARENT_TASKS.each do |group| %>
+  <% sample_parent_tasks.group_by { due_key(it[:due]) }.each_value do |tasks| %>
     <section class="mt-10">
       <h2 class="mb-3 flex items-center gap-2 text-[11px] font-semibold text-muted">
-        <% if group[:date] == "期限なし" %>
-          <%= group[:date] %>
-        <% else %>
-          <%= render "shared/icon", name: :calendar, class: "h-3.5 w-3.5" %><%= group[:date] %>
+        <% if tasks.first[:due] %>
+          <%= render "shared/icon", name: :calendar, class: "h-3.5 w-3.5" %>
         <% end %>
+        <%= due_label(tasks.first[:due], date_only: true) %>
       </h2>
       <ul class="space-y-2.5">
-        <% group[:tasks].each do |task| %>
-          <li>
+        <% tasks.each do |task| %>
+          <li data-done="<%= task[:total].positive? && task[:done] == task[:total] %>" data-due-key="<%= due_key(task[:due]) %>">
             <%= link_to task_detail_mock_path(title: task[:title]),
-                        class: "group flex items-center gap-6 rounded-xl border border-line bg-white px-6 py-5 transition hover:shadow-[0_8px_24px_-12px_rgba(32,36,33,0.18)]" do %>
+                        class: "group flex items-center gap-6 rounded-xl border border-line bg-white px-6 py-5 transition hover:shadow-card" do %>
               <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-3 text-[9px]">
+                <div class="flex items-center gap-3 text-2xs">
                   <% case task[:status] %>
                   <% when :decomposing %>
                     <span class="flex items-center gap-1.5 font-semibold text-accent"><span class="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"></span>分解中</span>
                   <% when :failed %>
-                    <span class="flex items-center gap-1.5 font-semibold text-red-700"><span class="h-1.5 w-1.5 rounded-full bg-red-600"></span>分解失敗</span>
+                    <span class="flex items-center gap-1.5 font-semibold text-danger"><span class="h-1.5 w-1.5 rounded-full bg-danger-dot"></span>分解失敗</span>
                   <% else %>
                     <span class="flex items-center gap-1.5 font-semibold text-brand"><span class="h-1.5 w-1.5 rounded-full bg-brand-dot"></span>分解完了</span>
                   <% end %>
                   <span class="flex items-center gap-1 text-muted">
-                    <%= render "shared/icon", name: :calendar, class: "h-3 w-3" %><%= task[:due] || "期限なし" %>
+                    <%= render "shared/icon", name: :calendar, class: "h-3 w-3" %><%= due_time_tag(task[:due]) %>
                   </span>
                 </div>
                 <p class="mt-2.5 font-serif text-[17px] font-bold group-hover:text-brand"><%= task[:title] %></p>
@@ -43,12 +42,12 @@
 
               <div class="w-40 shrink-0 text-right">
                 <% if task[:total].positive? %>
-                  <p class="text-[10px] text-muted"><%= task[:done] %>/<%= task[:total] %> 完了</p>
+                  <p class="text-2xs text-muted"><%= task[:done] %>/<%= task[:total] %> 完了</p>
                   <div class="mt-2 h-1.5 rounded-full bg-brand-soft">
                     <div class="h-1.5 rounded-full bg-brand" style="width: <%= task[:done] * 100 / task[:total] %>%"></div>
                   </div>
                 <% else %>
-                  <p class="text-[10px] text-subtle">—</p>
+                  <p class="text-2xs text-subtle">—</p>
                 <% end %>
               </div>
 
