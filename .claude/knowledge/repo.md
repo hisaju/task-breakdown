@@ -4,7 +4,7 @@
 - Tailwind の watch はコンテナ内で `poll` モード（`tailwindcss:watch[always,poll]`）。macOS のボリューム越しではファイル変更イベントが届かないため
 - CSS が反映されないときは `docker compose run --rm css bin/rails tailwindcss:build` で手動ビルド
 - 画面モック段階: ルーティングは `MocksController`（`/` `/tasks` `/tasks/sample` `/signup` `/login` `/terms` `/privacy`、POST `/signup` `/login`）。本実装時は `docs/screens.md` の「URL（実装予定）」に置き換え、モックは削除する
-- SimpleCov の閾値は `MIN_COVERAGE`（既定 0。ロジック実装後は 80 に戻す）
+- SimpleCov の閾値は `MIN_COVERAGE`（既定 0）。カバレッジは目標 80% の参考値で、CI で閾値チェックはしない（キックオフの方針）
 
 ## デザイントークン（`app/assets/tailwind/application.css` の `@theme`）
 - ビューに `#xxxxxx` / `rgba(` / `text-[9px]` を書かない（`grep -rnE '#[0-9a-fA-F]{6}|rgba\(|text-\[9px\]' app/views` が 0 件であること）。`@theme` に足した値は `bg-<name>` `text-<name>` `shadow-<name>` 等で使える

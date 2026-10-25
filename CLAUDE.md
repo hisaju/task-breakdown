@@ -30,7 +30,7 @@
 - AI 呼び出しは `app/services/llm/` に閉じ込め、テストでは固定応答クライアントに差し替える（設計: `docs/ai-decomposition.md`）
 
 ## 開発ルール
-- GitHub Flow: `main` から `feature/issue-<番号>-<説明>` を切り、Draft PR → CI green → レビュー → squash merge
+- 開発フロー（詳細は `docs/kickoff.md` (6)）: エピックは `main` から `epic/<番号>-<説明>` を切り、子 Issue ごとに epic から `feature/<番号>-<説明>` を切る。子 PR → epic は CI green で Squash merge（レビュー不要）、epic → `main` はレビュー承認 1 名で Merge commit
 - 受入条件 → spec（Red）→ 実装（Green）→ リファクタの順で進める
 - 外部通信は WebMock で遮断済み。実 API を叩くテストを書かない
 - コミット: `<feat|fix|refactor|test|docs|chore>: <要約>`
