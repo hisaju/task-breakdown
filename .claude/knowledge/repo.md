@@ -27,8 +27,18 @@
 ## system spec（`spec/system/`）
 - JS を動かす spec は `:js` を付ける（`type: :system` は配置から推論）。ドライバは cuprite（`spec/support/capybara.rb` の `:cuprite_ja`、1280x900・ja-JP）。`:js` なしは rack_test
 - ローカル: `docker compose run --rm web bundle exec rspec spec/system`。Chromium は `Dockerfile.dev` に入っており `BROWSER_PATH=/usr/bin/chromium`。イメージが古ければ `docker compose build web`
-- 画面を見ながらデバッグしたいときはホストで動かせないので、`page.save_screenshot("tmp/screenshots/x.png")` で画像を残して確認する
+- 画面を見ながらデバッグしたいときはホストで動かせないので、`page.save_screenshot("x.png")` で画像を残して確認する。相対パスは `Capybara.save_path`（`tmp/capybara/`）基準になる（`"tmp/screenshots/x.png"` と書くと `tmp/capybara/tmp/screenshots/` に出る）
+- cuprite の `click` / `hover` は対象を画面中央付近へスクロールしてから操作する。sticky なサイドバー下部の要素をクリックすると `window.scrollY` が変わり、スクリーンショットの見た目がずれる（アプリの挙動ではない）。見た目を撮るときは `execute_script("...click()")` で押す
 - 失敗時のスクリーンショットは `tmp/screenshots/` に保存される
 
 ## 作業ディレクトリの共有
 - 複数のエージェント（developer / tester 等）が同じ作業ディレクトリを使う。tester が比較のために `git switch main` や特定コミットを checkout すると、developer 側が detached HEAD になり push が漏れる。別リビジョンとの比較は `git worktree add ../tb-main origin/main` など別ディレクトリで行う（#12, 2026-10-25）
+
+## モックの共通部品と規約
+- **no-op ボタン**: 押しても何も起きない「見た目だけ」のボタンは `type="button" data-mock="noop"` を必ず付ける。削除・再分解などの破壊的な項目も no-op で、確認ダイアログは出さない。`docs/screens.md` の要素表では「（見た目のみ）」と注記する
+- **非表示**: 完了フィルタ・日付タブで隠す要素は `data-hidden-by-done` / `data-hidden-by-tab` 属性で表し、`application.css` のレイヤー外ルール（`display: none`）で消す。`hidden` 属性やクラスの付け外しで隠さない（メニュー本体と空状態の表示切替だけは `hidden` 属性）
+- `shared/_decomposition_status`（`status: :decomposing | :done | :failed`。ルートに `data-decomposition-status`）: S-4 見出し上・S-5 カードで同じマークアップ。未知の値は例外
+- `shared/_menu`（`id:` `items: [{ label:, href:, danger: }]` `placement: :down | :up` `label:`）＋ `menu_controller.js`: `href` 付き項目は `<a role="menuitem">`、無い項目は no-op ボタン。開閉状態はトリガーの `aria-expanded` とメニューの `hidden`。外側クリック・Esc（トリガーへフォーカスを戻す）で閉じ、↑↓/Home/End で項目移動。`id` は画面内で一意にする（サイドバーは `user-menu`）
+- `mocks/_content_header`（S-4・S-5 のヘッダー。左はブロックで渡す）＋ `completed_filter_controller.js`: 両画面とも `<header>` と本文を `data-controller="completed-filter"` のラッパーで包む。状態はトグルの `aria-pressed` だけ。ラッパー内の `[data-done]` を対象に、`data-done="true"` へ `data-hidden-by-done` を付け外しする。初期描画でもサーバ側で `data-hidden-by-done` を付けておく（JS 前のちらつき防止・request spec で検査できる）。`MutationObserver` で `data-done` / `data-hidden-by-tab` の変化と要素の追加に追随するので、完了チェックや日付タブ側から通知は不要。表示対象が 0 件になったら `data-completed-filter-target="empty"` の要素の `hidden` を外す（`[data-done]` が 1 件も無い画面では出さない）
+- `shared/_empty_state`（`icon:` `title:` `body:` `action: { label:, href: }` `data:` `hidden:`）、`shared/_task_progress`（`done:` `total:`。`total` 0 は「—」。ルートに `data-task-progress`）
+- 部品の単体検査は `spec/views/shared/`（view spec）
