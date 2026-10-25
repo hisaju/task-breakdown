@@ -42,7 +42,56 @@ RSpec.describe "S-5 マイタスク", :js do
     end
   end
 
+  # 要素の矩形 r を基準にした位置（x・y は r を使う JS の式）を実際のマウスで押す。
+  # どの要素が受けるかはブラウザの当たり判定に任せる
+  def click_at(element_js, x, y)
+    point = page.evaluate_script(<<~JS)
+      (() => {
+        const el = #{element_js}
+        el.scrollIntoView({ block: "center" })
+        const r = el.getBoundingClientRect()
+        return [r.left + (#{x}), r.top + (#{y})]
+      })()
+    JS
+    page.driver.browser.mouse.click(x: point[0], y: point[1])
+  end
+
+  def row_js(title)
+    %(Array.from(document.querySelectorAll("section li[data-done]")).find((li) => li.textContent.includes(#{title.to_json})))
+  end
+
   describe "タスク詳細への遷移" do
+    it "カードの余白（左右・上下の padding）を押しても S-4 へ移り、行の期限を引き継ぐ" do
+      [ %w[8 r.height/2], %w[r.width/2 6], %w[r.width/3 r.height-6], %w[r.width-8 8] ].each do |x, y|
+        visit "/tasks"
+        click_at(row_js("見積もり作成"), x, y)
+
+        expect(page).to have_css("h1", text: "見積もり作成")
+        expect(page).to have_css("[data-parent-due]", text: "今日 18:00")
+      end
+    end
+
+    it "メニューのトリガーと開いた項目はリンクより前面にあり、押しても遷移しない" do
+      trigger = trigger_of("見積もり作成")
+      click_at(%(document.querySelector("button[aria-label='「見積もり作成」のメニュー']")), "r.width/2", "r.height/2")
+      expect(trigger["aria-expanded"]).to eq "true"
+      expect(page).to have_current_path("/tasks")
+
+      # 開いたメニューは次の行のカードに重なっても前面にある
+      menu_id = trigger["aria-controls"]
+      on_top = page.evaluate_script(<<~JS)
+        Array.from(document.querySelectorAll("##{menu_id} [role='menuitem']")).every((item) => {
+          const r = item.getBoundingClientRect()
+          return document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.closest("[role='menuitem']") === item
+        })
+      JS
+      expect(on_top).to be true
+
+      click_at(%(document.querySelector("##{menu_id} [role='menuitem']:last-child")), "r.width/2", "r.height/2")
+      expect(trigger["aria-expanded"]).to eq "false"
+      expect(page).to have_current_path("/tasks")
+    end
+
     it "分解失敗の行を開くと S-4 も分解失敗で表示する" do
       within(row("引っ越しの準備をする")) { find("a").click }
 
