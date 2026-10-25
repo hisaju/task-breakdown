@@ -6,16 +6,17 @@
   <p class="mt-3 text-[13px] leading-relaxed text-muted">大きなタスクも、AI が実行できる手順に分解します。</p>
 </div>
 
-<%= form_with url: root_path, method: :get, data: { turbo: false },
+<%= form_with url: signup_mock_path, method: :post, data: { turbo: false },
               class: "mt-9 w-full max-w-[420px] space-y-5 rounded-2xl border border-line bg-white p-8 shadow-float" do %>
   <%= render "mocks/auth_field", id: "name", label: "お名前", type: "text", placeholder: "山田 優", autocomplete: "name" %>
   <%= render "mocks/auth_field", id: "email", label: "メールアドレス", type: "email", placeholder: "you@example.com", autocomplete: "email" %>
-  <%= render "mocks/auth_field", id: "password", label: "パスワード", type: "password", autocomplete: "new-password", hint: "8文字以上で入力してください" %>
+  <%= render "mocks/auth_field", id: "password", label: "パスワード", type: "password", autocomplete: "new-password", minlength: 8, hint: "8文字以上で入力してください" %>
   <%= render "mocks/auth_field", id: "password_confirmation", label: "パスワード（確認）", type: "password", autocomplete: "new-password" %>
 
+  <%# 規約は新しいタブで開き、入力途中のフォームを残す %>
   <label class="flex items-start gap-2 text-[11px] text-muted">
-    <input type="checkbox" class="mt-0.5 h-3.5 w-3.5 rounded border-line accent-brand">
-    <span><a href="#" class="text-brand underline-offset-2 hover:underline">利用規約</a>と<a href="#" class="text-brand underline-offset-2 hover:underline">プライバシーポリシー</a>に同意する</span>
+    <input type="checkbox" name="terms" value="1" required class="mt-0.5 h-3.5 w-3.5 rounded border-line accent-brand">
+    <span><%= link_to "利用規約", terms_mock_path, target: "_blank", rel: "noopener", class: "text-brand underline-offset-2 hover:underline" %>と<%= link_to "プライバシーポリシー", privacy_mock_path, target: "_blank", rel: "noopener", class: "text-brand underline-offset-2 hover:underline" %>に同意する</span>
   </label>
 
   <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-3.5 text-[13px] font-semibold text-white hover:bg-brand-hover">
