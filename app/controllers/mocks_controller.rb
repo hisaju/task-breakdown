@@ -73,19 +73,28 @@ class MocksController < ApplicationController
     ]
   end
 
-  # S-4 の日付タブ。「すべて」＋サブタスクの期限に含まれる日付（期限なしは「すべて」のみで表示）
+  # S-4 の日付タブ。「すべて」＋表示するサブタスクの期限に含まれる日付（期限なしは「すべて」のみで表示）
   def date_tabs
-    dated = sample_subtasks.filter_map { it[:due] }.sort.uniq { helpers.due_key(it) }
+    dated = (@subtasks || sample_subtasks).filter_map { it[:due] }.sort.uniq { helpers.due_key(it) }
     [ { key: "all", label: "すべて" } ] +
       dated.map { { key: helpers.due_key(it), label: helpers.due_label(it, date_only: true) } }
   end
 
-  # S-4 に並べるサブタスク。分解中・分解失敗は 0 件、?all_done=1 は全件完了済み
+  # S-4 に並べるサブタスク。分解中・分解失敗は 0 件、?all_done=1 は全件完了済み。
+  # 期限は親タスクの期限を超えないよう丸める（S-5 のどの行から開いても、サブタスクが親より後の期限にならない）
   def detail_subtasks
     return [] unless @status == :done
-    return sample_subtasks unless params[:all_done] == "1"
 
-    sample_subtasks.map { it.merge(done: true) }
+    sample_subtasks.map do |subtask|
+      subtask.merge(due: within_parent_due(subtask[:due]), done: params[:all_done] == "1" || subtask[:done])
+    end
+  end
+
+  # 親タスクの期限より後の期限は親の期限にする。親の期限が無いとき・サブタスクの期限が無いときはそのまま
+  def within_parent_due(due)
+    return due if due.nil? || @due.nil?
+
+    [ due, @due ].min
   end
 
   # 親タスクの期限のサンプル（S-5 の同名の行と同じ）
@@ -106,9 +115,10 @@ class MocksController < ApplicationController
     nil
   end
 
-  # 「タスクを追加」で末尾に足すカードの初期値。タスク名・補足は空で、追加直後に入力する（editable: true）
+  # 「タスクを追加」で末尾に足すカードの初期値。期限は今日 17:00（親の期限がそれより前なら親の期限）。
+  # タスク名・補足は空で、追加直後に入力する（editable: true）
   def new_subtask
-    { kind: :basic, due: today_at(17), done: false, title: "", description: "", editable: true }
+    { kind: :basic, due: within_parent_due(today_at(17)), done: false, title: "", description: "", editable: true }
   end
 
   def today_at(hour)

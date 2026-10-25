@@ -77,11 +77,31 @@ RSpec.describe "S-5 マイタスク（画面モック）" do
   describe "タスク詳細への引き継ぎ" do
     before { get "/tasks" }
 
-    it "行のリンクは親タスク名と分解ステータスを渡す" do
-      expect(link_params(row("経費申請"))).to eq("title" => "経費申請", "status" => "decomposing")
-      expect(link_params(row("引っ越しの準備をする"))).to eq("title" => "引っ越しの準備をする", "status" => "failed")
-      expect(link_params(row("社内提案資料を作成する"))).to eq("title" => "社内提案資料を作成する", "status" => "done")
+    it "行のリンクは親タスク名・分解ステータス・期限を渡す（期限なしは空の due）" do
+      expect(link_params(row("経費申請"))).to eq("title" => "経費申請", "status" => "decomposing", "due" => "2026-06-20T17:00")
+      expect(link_params(row("引っ越しの準備をする"))).to eq("title" => "引っ越しの準備をする", "status" => "failed", "due" => "")
+      expect(link_params(row("社内提案資料を作成する")))
+        .to eq("title" => "社内提案資料を作成する", "status" => "done", "due" => "2026-06-27T17:00")
       expect(rows.map { URI.parse(it.at_css("a")["href"]).path }).to all(eq "/tasks/sample")
+    end
+
+    it "どの行を開いても S-4 の親タスクの期限は行の期限と同じで、サブタスクの期限は親の期限を超えない" do
+      targets = rows.map { [ it.at_css("a")["href"], it.at_css("a [data-row-due]").text.squish ] }
+      expect(targets.size).to eq 6
+
+      targets.each do |href, row_due|
+        get href, params: { autoplay: "0" }
+        expect(html.at_css("[data-parent-due]").text.squish).to eq(row_due), href
+
+        parent_time = html.at_css("[data-parent-due] time")&.[]("datetime")
+        next unless parent_time
+
+        card_times = html.css("ol[data-subtasks-target='list'] > li time[datetime]").map { Time.zone.parse(it["datetime"]) }
+        expect(card_times).to all(be <= Time.zone.parse(parent_time)), href
+        tab_keys = html.css("[role='tab']").map { it["data-due-key"] } - [ "all" ]
+        card_keys = html.css("ol[data-subtasks-target='list'] > li").map { it["data-due-key"] }.uniq - [ "none" ]
+        expect(tab_keys).to match_array(card_keys), href
+      end
     end
 
     it "リンク先の S-4 は行と同じステータスで開く" do
