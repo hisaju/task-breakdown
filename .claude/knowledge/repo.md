@@ -3,7 +3,7 @@
 - コマンドはすべて `docker compose run --rm web ...` で実行する。ホストの Ruby で `bin/rails` を叩くと DB に繋がらない
 - Tailwind の watch はコンテナ内で `poll` モード（`tailwindcss:watch[always,poll]`）。macOS のボリューム越しではファイル変更イベントが届かないため
 - CSS が反映されないときは `docker compose run --rm css bin/rails tailwindcss:build` で手動ビルド
-- 画面モック段階: ルーティングは `MocksController`（`/` `/tasks` `/tasks/sample` `/signup` `/login`）。本実装時は `docs/screens.md` の「URL（実装予定）」に置き換え、モックは削除する
+- 画面モック段階: ルーティングは `MocksController`（`/` `/tasks` `/tasks/sample` `/signup` `/login` `/terms` `/privacy`、POST `/signup` `/login`）。本実装時は `docs/screens.md` の「URL（実装予定）」に置き換え、モックは削除する
 - SimpleCov の閾値は `MIN_COVERAGE`（既定 0。ロジック実装後は 80 に戻す）
 
 ## デザイントークン（`app/assets/tailwind/application.css` の `@theme`）
@@ -54,6 +54,11 @@
 
 ## モック用クエリ（docs には書かない）
 - S-4 `/tasks/sample`: `?title=`（見出し。配列・ハッシュ（`?title[]=a`）は無視してサンプル名）、`?status=decomposing|done|failed`（既定・不正値は done）、`?due=`（ISO 8601 の日時。例 `2026-06-20T17:00`。キーが無ければサンプルの期限＝7 日後 17:00、空・不正値は「期限なし」）、`?all_done=1`（status=done のとき全サブタスク完了済み＝全完了の空状態で開く）、`?autoplay=0`（分解中から自動遷移しない）
+- S-3 `/` の送信: GET で `/tasks/sample?title=…&status=decomposing&due=…`（`status` は hidden、`due` は datetime-local の値。未入力でも `due=` は空で付き、S-4 は「期限なし」）。`due` の `min` はサーバの現在時刻（分単位、`include_seconds: false`）。空白だけの入力は `prompt_controller#validate` が `setCustomValidity` で止める（入力例チップは値を入れた後に `input` イベントを dispatch して再検証させる）
+- S-1/S-2 の送信: `POST /login` → `mocks#login_submit`、`POST /signup` → `mocks#signup_submit`。保存・検証なしで `redirect_to root_path`（302）。GET だとパスワードがクエリに載るため POST にしている
+- S-6 `/terms`・S-7 `/privacy`: auth レイアウトの静的ページ（`mocks/_legal_page`）。S-2 の同意文から `target="_blank" rel="noopener"` で開く（入力途中のフォームを失わない）。本文はダミー
 - S-5 `/tasks`: `?empty=1`（親タスクが 1 件も無いときの空状態「まだタスクがありません」。`"1"` 以外の値・配列は通常の一覧）
 - 分解中は `decomposition_progress_controller` が 3 秒後に `status=done`（`title` `due` は引き継ぐ）へ `Turbo.visit(..., { action: "replace" })`
 - 部品の単体検査は `spec/views/shared/`（view spec）
+- `_auth_field`（`id:` `label:` `type:`、任意 `placeholder:` `autocomplete:` `hint:` `minlength:` `required:`）: `required` は既定で付く。`hint:` は `id="<id>-hint"` で出し、入力欄の `aria-describedby` に結ぶ
+- system spec で `minlength` を検証するときは `send_keys` で打ち込む（`fill_in` の値設定はユーザー編集扱いにならず `tooShort` が立たない）
