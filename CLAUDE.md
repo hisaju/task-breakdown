@@ -7,6 +7,8 @@
 - 仕様: `docs/README.md`（キックオフ・要件・画面・データ・AI 設計）
 - 蓄積された知見: `.claude/knowledge/INDEX.md`
 
+@.claude/knowledge/INDEX.md
+
 ## コマンド（すべて Docker Compose 経由で実行する）
 | 用途 | コマンド |
 |---|---|

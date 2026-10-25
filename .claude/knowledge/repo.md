@@ -29,3 +29,6 @@
 - ローカル: `docker compose run --rm web bundle exec rspec spec/system`。Chromium は `Dockerfile.dev` に入っており `BROWSER_PATH=/usr/bin/chromium`。イメージが古ければ `docker compose build web`
 - 画面を見ながらデバッグしたいときはホストで動かせないので、`page.save_screenshot("tmp/screenshots/x.png")` で画像を残して確認する
 - 失敗時のスクリーンショットは `tmp/screenshots/` に保存される
+
+## 作業ディレクトリの共有
+- 複数のエージェント（developer / tester 等）が同じ作業ディレクトリを使う。tester が比較のために `git switch main` や特定コミットを checkout すると、developer 側が detached HEAD になり push が漏れる。別リビジョンとの比較は `git worktree add ../tb-main origin/main` など別ディレクトリで行う（#12, 2026-10-25）
