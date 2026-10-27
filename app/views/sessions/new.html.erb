@@ -1,31 +1,41 @@
-<div class="mx-auto md:w-2/3 w-full">
-  <% if alert = flash[:alert] %>
-    <p class="py-2 px-3 bg-red-50 mb-5 text-red-500 font-medium rounded-lg inline-block" id="alert"><%= alert %></p>
-  <% end %>
+<% content_for :title, "ログイン | Tasklet" %>
 
-  <% if notice = flash[:notice] %>
-    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
-  <% end %>
-
-  <h1 class="font-bold text-4xl">Sign in</h1>
-
-  <%= form_with url: session_url, class: "contents" do |form| %>
-    <div class="my-5">
-      <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address], class: "block shadow-sm rounded-md border border-gray-400 focus:outline-blue-600 px-3 py-2 mt-2 w-full" %>
-    </div>
-
-    <div class="my-5">
-      <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72, class: "block shadow-sm rounded-md border border-gray-400 focus:outline-blue-600 px-3 py-2 mt-2 w-full" %>
-    </div>
-
-    <div class="col-span-6 sm:flex sm:items-center sm:gap-4">
-      <div class="inline">
-        <%= form.submit "Sign in", class: "w-full sm:w-auto text-center rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
-      </div>
-
-      <div class="mt-4 text-sm text-gray-500 sm:mt-0">
-        <%= link_to "Forgot password?", new_password_path, class: "text-gray-700 underline hover:no-underline" %>
-      </div>
-    </div>
-  <% end %>
+<div class="mt-12 w-full max-w-[420px] text-center">
+  <p class="text-[11px] font-semibold tracking-[0.12em] text-brand-dot">WELCOME BACK</p>
+  <h1 class="mt-3 font-serif text-[32px] font-bold tracking-tight">おかえりなさい</h1>
+  <p class="mt-3 text-[13px] leading-relaxed text-muted">ログインして、今日のタスクを確認しましょう。</p>
 </div>
+
+<%= form_with url: session_path,
+              class: "mt-9 w-full max-w-[420px] space-y-5 rounded-2xl border border-line bg-white p-8 shadow-float" do |f| %>
+
+  <% if alert = flash[:alert] %>
+    <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-left">
+      <p class="text-[13px] font-medium text-red-600"><%= alert %></p>
+    </div>
+  <% end %>
+
+  <%# メールアドレス %>
+  <div class="space-y-1.5 text-left">
+    <%= f.label :email_address, "メールアドレス", class: "block text-[11px] font-medium text-main" %>
+    <%= f.email_field :email_address, value: params[:email_address], placeholder: "you@example.com",
+                      autocomplete: "username", required: true, autofocus: true,
+                      class: "w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-[14px] outline-none transition focus:border-brand focus:ring-1 focus:ring-brand" %>
+  </div>
+
+  <%# パスワード %>
+  <div class="space-y-1.5 text-left">
+    <%= f.label :password, "パスワード", class: "block text-[11px] font-medium text-main" %>
+    <%= f.password_field :password, autocomplete: "current-password", required: true,
+                         class: "w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-[14px] outline-none transition focus:border-brand focus:ring-1 focus:ring-brand" %>
+  </div>
+
+  <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-3.5 text-[13px] font-semibold text-white hover:bg-brand-hover">
+    ログイン
+    <%= render "shared/icon", name: :chevron_right, class: "h-3.5 w-3.5" %>
+  </button>
+<% end %>
+
+<p class="mt-6 text-[12px] text-muted">
+  アカウントをお持ちでない方は <%= link_to "会員登録", new_registration_path, class: "font-semibold text-brand hover:underline" %>
+</p>
