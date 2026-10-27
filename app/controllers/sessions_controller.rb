@@ -1,6 +1,6 @@
 class SessionsController < ApplicationController
   layout "auth"
-  
+
   # ログイン済みなら root_path へリダイレクト
   redirect_if_authenticated only: %i[new create]
   allow_unauthenticated_access only: %i[ new create ]
