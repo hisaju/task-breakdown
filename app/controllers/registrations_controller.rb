@@ -1,4 +1,6 @@
 class RegistrationsController < ApplicationController
+  layout "auth"
+
   allow_unauthenticated_access only: %i[new create]
 
   def new
