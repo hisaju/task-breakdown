@@ -91,18 +91,15 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: task_breakdown_production
-    username: task_breakdown
-    password: <%= ENV["TASK_BREAKDOWN_DATABASE_PASSWORD"] %>
-  cache:
-    <<: *primary_production
-    database: task_breakdown_production_cache
-    migrations_paths: db/cache_migrate
+    url: <%= ENV['DATABASE_MIGRATION_URL'] || ENV.fetch('DATABASE_URL') %> #追記　
+    prepared_statements: false #追記
+  # Solid Cache用DBは廃止し、インメモリ(memory_store)を使用するため cache: ブロックは削除済。
+  
   queue:
     <<: *primary_production
-    database: task_breakdown_production_queue
     migrations_paths: db/queue_migrate
+
   cable:
     <<: *primary_production
-    database: task_breakdown_production_cable
+    
     migrations_paths: db/cable_migrate
