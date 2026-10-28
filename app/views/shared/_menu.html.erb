@@ -1,7 +1,9 @@
 <%#
   メニュー「…」。locals:
     id:        メニュー本体の id（トリガーの aria-controls と対応。画面内で一意にする）
-    items:     [{ label:, href: nil, danger: false }]。href があればリンク、無ければ見た目のみのボタン（data-mock="noop"。押すとメニューを閉じる）
+    items:     [{ label:, href: nil, method: nil, danger: false }]
+               - href があればリンク、無ければ見た目のみのボタン（data-mock="noop"。押すとメニューを閉じる）
+               - method（例: :delete）を指定すると Turbo Method 経由でリクエストを送信可能
     placement: :down（既定。トリガーの下に開く）| :up（上に開く。画面下部に置くとき）
     label:     トリガーの aria-label（既定「メニュー」）。一覧で繰り返すときは対象名を入れる（例:「『〜』のメニュー」）
 %>
@@ -21,7 +23,10 @@
       <% item_class = class_names("block w-full px-3 py-2 text-left text-[11px] font-semibold hover:bg-canvas",
                                   item[:danger] ? "text-danger" : "text-ink") %>
       <% if item[:href] %>
-        <%= link_to item[:label], item[:href], role: "menuitem", tabindex: -1, class: item_class %>
+        <%# method（:delete 等）が指定されている場合は Turbo Method で送信（ログアウトや削除処理用） %>
+        <%= link_to item[:label], item[:href], role: "menuitem", tabindex: -1,
+                    data: (item[:method] ? { turbo_method: item[:method] } : {}),
+                    class: item_class %>
       <% else %>
         <button type="button" role="menuitem" tabindex="-1" data-mock="noop" data-action="menu#closeAndFocus" class="<%= item_class %>"><%= item[:label] %></button>
       <% end %>
