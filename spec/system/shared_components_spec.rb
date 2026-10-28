@@ -49,11 +49,11 @@ RSpec.describe "共通部品", :js do
       expect(page).to have_css("aside button[aria-haspopup='menu']:focus")
     end
 
-    it "ログアウトで /login へ移る" do
+    it "ログアウトでログイン画面へ移る" do
       trigger.click
       find("aside [role='menuitem']", text: "ログアウト").click
 
-      expect(page).to have_current_path("/login")
+      expect(page).to have_current_path("/session/new")
       expect(page).to have_content("おかえりなさい")
     end
 
