@@ -135,6 +135,7 @@ flowchart TD
 - PR は **Draft で作成** し、CI が通ってセルフチェックが済んだら Ready for review にする
 - 子 PR の本文に `Closes #<子 Issue 番号>` を書く。ただし向き先が `main` ではないため、この時点では Issue は閉じない。epic → `main` の統合 PR の本文に、エピックと全子 Issue の `Closes` を並べ、`main` へのマージ時にまとめて閉じる
 - 小さな修正でエピックにする必要がないものは、`main` から feature ブランチを切り、`main` 向けの PR を作る（CI green ＋ レビュー承認 1 名で Squash merge）
+- `main` と epic ブランチは GitHub のルールセットで保護している。`main` は直接 push・force push・削除ができず、上のマージ条件（CI green ＋ レビュー承認 1 名）を満たさないとマージできない。epic ブランチは CI green が必須で、force push はできない
 
 ## (7) テストコード方針
 
