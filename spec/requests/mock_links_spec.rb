@@ -11,7 +11,7 @@ RSpec.describe "画面モックのリンクと送信先（横断検査）" do
       method = node.at_css("input[name='_method']")&.[]("value") || node["method"].presence || "get"
     else
       url = node["href"]
-      method = "get"
+      method = node["data-turbo-method"].presence || "get"  # data-turbo-method を拾うように修正
     end
     return nil if url.blank? || url.start_with?("#", "javascript:")
 
@@ -85,7 +85,7 @@ RSpec.describe "画面モックのリンクと送信先（横断検査）" do
       get "/"
 
       expect(mock_document.at_css("#user-menu a[role='menuitem']")).to have_attributes(text: "ログアウト")
-      expect(mock_document.at_css("#user-menu a[role='menuitem']")["href"]).to eq "/login"
+      expect(mock_document.at_css("#user-menu a[role='menuitem']")["href"]).to eq "/session"
     end
 
     { "/login" => "mocks#login_submit", "/signup" => "mocks#signup_submit" }.each do |path, action|

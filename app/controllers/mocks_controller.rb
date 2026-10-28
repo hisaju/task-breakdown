@@ -3,6 +3,7 @@
 class MocksController < ApplicationController
   # 画面モック（デザイン・UI確認用）のため、未ログイン状態でのアクセスを許可する
   allow_unauthenticated_access
+  before_action :resume_session
 
   EXAMPLES = %w[イベントの企画を進める 資格試験の学習計画を立てる 引っ越しの準備をする].freeze
 
