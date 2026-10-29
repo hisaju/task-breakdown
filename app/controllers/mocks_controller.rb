@@ -1,6 +1,10 @@
 # 画面モック用コントローラ。表示用のサンプルデータのみを持ち、永続化や AI 分解は行わない。
 # サンプルの期限は Time.current 基準の相対日時で、リクエストごとに評価する（「今日」「明日」が常に成り立つ）。
 class MocksController < ApplicationController
+  # 画面モック（デザイン・UI確認用）のため、未ログイン状態でのアクセスを許可する
+  allow_unauthenticated_access
+  before_action :resume_session
+
   EXAMPLES = %w[イベントの企画を進める 資格試験の学習計画を立てる 引っ越しの準備をする].freeze
 
   # S-4 で表示する分解結果の親タスク名（S-5 の同名の行は進捗をこのサンプルから導出する）

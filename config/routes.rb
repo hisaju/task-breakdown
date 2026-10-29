@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  resource :session, only: %i[new create destroy]
+  resource :registration, only: %i[new create]
+
   # 画面モック（Figma モックを Rails のビューで再現したもの。ロジックは未実装）
   root "mocks#new_task"
   get "tasks" => "mocks#my_tasks", as: :my_tasks_mock
