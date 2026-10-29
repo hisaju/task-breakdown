@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe User, type: :model do
+RSpec.describe User do
   describe "バリデーション" do
     let(:user) { build(:user) }
 
@@ -13,7 +13,7 @@ RSpec.describe User, type: :model do
     describe "お名前（name）" do
       it "必須であること" do
         user.name = ""
-        expect(user).to be_invalid
+        expect(user).not_to be_valid
         expect(user.errors[:name]).to be_present
       end
 
@@ -22,7 +22,7 @@ RSpec.describe User, type: :model do
         expect(user).to be_valid
 
         user.name = "a" * 51
-        expect(user).to be_invalid
+        expect(user).not_to be_valid
         expect(user.errors[:name]).to be_present
       end
     end
@@ -31,7 +31,7 @@ RSpec.describe User, type: :model do
     describe "利用規約への同意（terms_accepted_at）" do
       it "必須であること" do
         user.terms_accepted_at = nil
-        expect(user).to be_invalid
+        expect(user).not_to be_valid
         expect(user.errors[:terms_accepted_at]).to be_present
       end
     end
@@ -40,14 +40,14 @@ RSpec.describe User, type: :model do
     describe "メールアドレス（email_address）" do
       it "必須であること" do
         user.email_address = ""
-        expect(user).to be_invalid
+        expect(user).not_to be_valid
         expect(user.errors[:email_address]).to be_present
       end
 
       it "一意（ユニーク）であること" do
         create(:user, email_address: "unique@example.com")
         duplicate_user = build(:user, email_address: "unique@example.com")
-        expect(duplicate_user).to be_invalid
+        expect(duplicate_user).not_to be_valid
         expect(duplicate_user.errors[:email_address]).to be_present
       end
 
@@ -63,7 +63,7 @@ RSpec.describe User, type: :model do
         invalid_addresses = %w[user@example,com user_at_foo.org user.name@example. foo@bar_baz.com]
         invalid_addresses.each do |invalid_address|
           user.email_address = invalid_address
-          expect(user).to be_invalid
+          expect(user).not_to be_valid
           expect(user.errors[:email_address]).to be_present
         end
       end
@@ -80,7 +80,7 @@ RSpec.describe User, type: :model do
       it "8文字以上であること" do
         user.password = "1234567"
         user.password_confirmation = "1234567"
-        expect(user).to be_invalid
+        expect(user).not_to be_valid
         expect(user.errors[:password]).to be_present
 
         user.password = "12345678"
