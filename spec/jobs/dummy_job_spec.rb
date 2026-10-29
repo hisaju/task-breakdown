@@ -4,14 +4,14 @@ RSpec.describe DummyJob do
   include ActiveJob::TestHelper
 
   it "ダミージョブがエンキューされ、正常に実行されること" do
+    # 1. キューに正しく追加（エンキュー）されるかの確認
     expect {
       described_class.perform_later
     }.to have_enqueued_job(described_class)
 
-    perform_enqueued_jobs do
-      expect {
-        described_class.perform_now
-      }.not_to raise_error
-    end
+    # 2. 直接実行してエラーが起きないかの確認
+    expect {
+      described_class.perform_now
+    }.not_to raise_error
   end
 end
