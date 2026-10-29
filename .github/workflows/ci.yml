@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Install libvips  # ← この2行をここに追加します
+      - name: Install libvips  # ←2行追記
         run: sudo apt-get update -qq && sudo apt-get install -y libvips
 
       - name: Set up Ruby
@@ -34,6 +34,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
+      - name: Install libvips  # ←2行追記
+        run: sudo apt-get update -qq && sudo apt-get install -y libvips
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -49,6 +52,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+
+      - name: Install libvips  # ←2行追記
+        run: sudo apt-get update -qq && sudo apt-get install -y libvips
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -87,6 +93,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+
+      - name: Install libvips  # ←2行追記
+        run: sudo apt-get update -qq && sudo apt-get install -y libvips
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
