@@ -65,3 +65,5 @@ group :test do
   gem "webmock"
   gem "simplecov", require: false
 end
+
+  gem "ruby-vips", "~> 2.3"
