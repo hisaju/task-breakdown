@@ -20,3 +20,7 @@
 !.env.example
 .DS_Store
 /.dev-flow
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
+
