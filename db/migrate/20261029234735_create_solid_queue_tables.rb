@@ -1,7 +1,5 @@
 class CreateSolidQueueTables < ActiveRecord::Migration[8.1]
 def change
-    return if table_exists?(:solid_queue_jobs)
-
     create_table :solid_queue_jobs do |t|
       t.string :queue_name, null: false
       t.string :class_name, null: false
