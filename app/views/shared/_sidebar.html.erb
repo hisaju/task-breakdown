@@ -20,12 +20,14 @@
 
   <%# ユーザーメニューは上に開く。aside 内に収め、メインより手前（z-30）に重ねる %>
   <div class="relative mt-auto flex items-center gap-2.5 border-t border-line px-2 pt-4">
-    <span class="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-avatar text-[11px] font-semibold text-white">YU</span>
+    <span class="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-avatar text-[11px] font-semibold text-white">
+    <%= Current.user&.name&.chr %>
+    </span>
     <div class="min-w-0 flex-1 leading-tight">
-      <p class="truncate text-xs font-semibold">山田 優</p>
-      <p class="truncate text-[11px] text-subtle" title="yu.yamada@example.com">yu.yamada@example.com</p>
+      <p class="truncate text-xs font-semibold"><%= Current.user&.name %></p>
+      <p class="truncate text-[11px] text-subtle" title="<%= Current.user&.email_address %>"><%= Current.user&.email_address %></p>
     </div>
     <%= render "shared/menu", id: "user-menu", label: "ユーザーメニュー", placement: :up,
-                              items: [ { label: "ログアウト", href: login_mock_path } ] %>
+                              items: [ { label: "ログアウト", href: session_path, method: :delete } ] %>
   </div>
 </aside>

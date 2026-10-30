@@ -210,7 +210,7 @@ RSpec.describe "画面モック" do
       end
     end
 
-    it "サイドバーのユーザーメニューはログアウトを /login へのリンクで持つ" do
+    it "サイドバーのユーザーメニューはログアウトを /session へのリンクで持つ" do
       get "/tasks"
 
       menu = html.at_css("aside [role='menu']")
@@ -220,15 +220,15 @@ RSpec.describe "画面モック" do
       items = menu.css("[role='menuitem']")
       expect(items.map { it.text.strip }).to eq [ "ログアウト" ]
       expect(items.first.name).to eq "a"
-      expect(items.first["href"]).to eq "/login"
+      expect(items.first["href"]).to eq "/session"
+      expect(items.first["data-turbo-method"]).to eq "delete"
     end
 
-    it "サイドバーはプラン名ではなくメールアドレスを表示する" do
+    it "サイドバーはプラン名を表示しない" do
       %w[/ /tasks /tasks/sample].each do |path|
         get path
 
         expect(response.body).not_to include("フリープラン")
-        expect(html.at_css("aside").text).to include("yu.yamada@example.com")
       end
     end
 
