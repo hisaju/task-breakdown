@@ -7,7 +7,7 @@ Rails.application.routes.draw do
   resources :tasks, only: %i[new create]
 
   # 画面モック（段階的に移行中）
-  # get "tasks" => "mocks#my_tasks", as: :my_tasks_mock
+  get "tasks" => "mocks#my_tasks", as: :my_tasks_mock
   get "tasks/sample" => "mocks#task_detail", as: :task_detail_mock
   get "signup" => "mocks#signup", as: :signup_mock
   post "signup" => "mocks#signup_submit"

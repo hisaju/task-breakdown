@@ -1,4 +1,11 @@
 class Task < ApplicationRecord
+  # 入力例チップ用の例文
+  EXAMPLES = [
+    "イベントの企画を進める",
+    "資格試験の学習計画を立てる",
+    "引っ越しの準備をする"
+  ].freeze
+
   # 関連付け
   belongs_to :user
   belongs_to :parent, class_name: "Task", optional: true
