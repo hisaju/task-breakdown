@@ -21,6 +21,6 @@ class CreateTasks < ActiveRecord::Migration[8.1]
     end
 
     # docs/data-model.md で指定されたインデックス
-    add_index :tasks, [:user_id, :status, :due_at]
+    add_index :tasks, [ :user_id, :status, :due_at ]
   end
 end
