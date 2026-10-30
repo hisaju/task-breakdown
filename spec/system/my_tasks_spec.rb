@@ -163,7 +163,17 @@ RSpec.describe "S-5 マイタスク", :js do
     end
   end
 
-  describe "空状態" do
+describe "空状態" do
+    let(:user) { create(:user) }
+
+    before do
+      # 遷移先の "/"（S-3）が本実装で認証必須になったため、ログインしておく
+      visit new_session_path
+      fill_in "メールアドレス", with: user.email_address
+      fill_in "パスワード", with: "password123"
+      click_on "ログイン"
+    end
+
     it "タスクが無いときはタスクを作るから S-3 へ進める" do
       visit "/tasks?empty=1"
 
