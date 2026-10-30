@@ -124,6 +124,7 @@ RSpec.describe "タスク管理（作成・認可）" do
       end
     end
   end
+
   # ------------------------------------------------------------
   # 3. マイタスク一覧画面の表示（GET /tasks）
   # ------------------------------------------------------------
@@ -146,18 +147,14 @@ RSpec.describe "タスク管理（作成・認可）" do
         )
       end
 
-      # 自分のタスク
-      let!(:my_task) do
-        user.tasks.create!(title: "自分の親タスク", due_at: 1.day.from_now)
-      end
-
-      # 他人のタスク
-      let!(:other_task) do
-        other_user.tasks.create!(title: "他人の親タスク", due_at: 1.day.from_now)
-      end
-
       before do
         post session_path, params: { email_address: user.email_address, password: "password123" }
+
+        # 自分のタスク
+        user.tasks.create!(title: "自分の親タスク", due_at: 1.day.from_now)
+
+        # 他人のタスク
+        other_user.tasks.create!(title: "他人の親タスク", due_at: 1.day.from_now)
       end
 
       it "200 OK が返り、自分のタスクのみが表示され、他ユーザーのタスクは表示されない（AC-3）" do

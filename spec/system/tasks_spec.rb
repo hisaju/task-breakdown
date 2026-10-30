@@ -70,6 +70,7 @@ RSpec.describe "タスク作成機能（S-3）", :js do
       expect(page).to have_current_path(root_path)
     end
   end
+
   # ------------------------------------------------------------
   # 4: マイタスク一覧画面（S-5）の表示と並び替え
   # ------------------------------------------------------------
@@ -84,36 +85,32 @@ RSpec.describe "タスク作成機能（S-3）", :js do
     end
 
     context "複数のタスクが登録されている場合" do
-      let!(:today_task) do
+      before do
+        # 1. 今日のタスク
         user.tasks.create!(
           title: "今日のタスク",
           due_at: Time.current.end_of_day
         )
-      end
 
-      let!(:tomorrow_task) do
+        # 2. 明日のタスク
         user.tasks.create!(
           title: "明日のタスク",
           due_at: 1.day.from_now.noon
         )
-      end
 
-      let!(:no_due_task) do
+        # 3. 期限なしタスク
         user.tasks.create!(
           title: "期限なしタスク",
           due_at: nil
         )
-      end
 
-      let!(:task_with_subtasks) do
+        # 4. サブタスク付きタスク
         parent = user.tasks.create!(
           title: "サブタスク付きタスク",
           due_at: 2.days.from_now.noon
         )
-        # サブタスクを2件作成（1件完了、1件未完了）
         parent.children.create!(user: user, title: "サブタスク1", status: :done)
         parent.children.create!(user: user, title: "サブタスク2", status: :todo)
-        parent
       end
 
       it "期限の近い順に並び、日付見出しが付き、期限なしは末尾にまとまり、進捗が表示される（AC-1, AC-2）" do
@@ -125,7 +122,6 @@ RSpec.describe "タスク作成機能（S-3）", :js do
         expect(page).to have_content("期限なし")
 
         # タスクが期限順（今日 → 明日 → 2日後 → 期限なし）に並んでいることを検証
-        # page.text 内での出現順序を比較
         today_pos = page.text.index("今日のタスク")
         tomorrow_pos = page.text.index("明日のタスク")
         subtasks_pos = page.text.index("サブタスク付きタスク")
