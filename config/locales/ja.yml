@@ -8,6 +8,9 @@ ja:
         password: "パスワード"
         password_confirmation: "パスワード（確認）"
         terms_accepted_at: "利用規約への同意"
+      task:
+        title: "タスク名"
+        due_at: "期限"
 
   # 画面通知メッセージ（コントローラの flash メッセージ用）
   tasks:
