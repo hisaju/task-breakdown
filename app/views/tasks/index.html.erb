@@ -1,0 +1,64 @@
+<% content_for :title, "マイタスク | Tasklet" %>
+
+<div class="flex min-h-screen flex-col">
+  <header class="border-b border-line bg-white px-8 py-5">
+    <p class="text-[13px] font-semibold">マイタスク</p>
+  </header>
+
+  <div class="mx-auto w-full max-w-[850px] px-4 pb-16 pt-[64px]">
+    <p class="text-[11px] font-semibold tracking-[0.12em] text-brand-dot">MY TASKS</p>
+    <h1 class="mt-3 font-serif text-[40px] font-bold leading-[1.45] tracking-tight">マイタスク</h1>
+    <p class="mt-4 text-[11px] text-muted">期限の近い順に並んでいます。タスクを選ぶと、分解した手順を確認できます。</p>
+
+    <% if @grouped_tasks.empty? %>
+      <div class="mt-10" data-my-tasks-empty>
+        <%= render "shared/empty_state", icon: :sparkles, title: "まだタスクがありません",
+                                         body: "やりたいことを入力すると、AI が手順に分解します。",
+                                         action: { label: "タスクを作る", href: root_path } %>
+      </div>
+    <% else %>
+      <% number = 0 %>
+      <% @grouped_tasks.each do |group_label, tasks| %>
+        <section class="mt-10">
+          <h2 class="mb-3 flex items-center gap-2 text-[11px] font-semibold text-muted">
+            <% if group_label != DueDateHelper::NO_DUE_LABEL %>
+              <%= render "shared/icon", name: :calendar, class: "h-3.5 w-3.5" %>
+            <% end %>
+            <%= group_label %>
+          </h2>
+          <ul class="space-y-2.5">
+            <% tasks.each do |task| %>
+              <% number += 1 %>
+              <% progress = task.progress %>
+              <li class="relative flex items-center gap-4 rounded-xl border border-line bg-white px-5 py-5 transition hover:shadow-card has-[>a:focus-visible]:ring-2 has-[>a:focus-visible]:ring-brand-dot">
+                <%= link_to task_detail_mock_path(title: task.title, due: task.due_at&.strftime("%Y-%m-%dT%H:%M") || ""),
+                            class: "group flex min-w-0 flex-1 items-center gap-6 rounded-lg focus-visible:ring-0 focus-visible:outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']" do %>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-3">
+                      <span class="flex items-center gap-1 text-2xs text-muted" data-row-due>
+                        <%= render "shared/icon", name: :calendar, class: "h-3 w-3" %><%= due_time_tag(task.due_at) %>
+                      </span>
+                    </div>
+                    <p class="mt-2.5 font-serif text-[17px] font-bold group-hover:text-brand"><%= task.title %></p>
+                  </div>
+
+                  <div class="w-40 shrink-0 text-right">
+                    <% if progress %>
+                      <%= render "shared/task_progress", done: progress[:completed], total: progress[:total] %>
+                    <% else %>
+                      <span class="text-2xs text-muted">—</span>
+                    <% end %>
+                  </div>
+
+                  <%= render "shared/icon", name: :chevron_right, class: "h-4 w-4 shrink-0 text-subtle group-hover:text-brand" %>
+                <% end %>
+                <%= render "shared/menu", id: "parent-task-menu-#{format('%02d', number)}", label: "「#{task.title}」のメニュー",
+                                          items: [ { label: "編集" }, { label: "削除", danger: true } ] %>
+              </li>
+            <% end %>
+          </ul>
+        </section>
+      <% end %>
+    <% end %>
+  </div>
+</div>
