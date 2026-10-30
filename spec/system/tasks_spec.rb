@@ -70,4 +70,71 @@ RSpec.describe "タスク作成機能（S-3）", :js do
       expect(page).to have_current_path(root_path)
     end
   end
+
+  # ------------------------------------------------------------
+  # 4: マイタスク一覧画面（S-5）の表示と並び替え
+  # ------------------------------------------------------------
+  describe "マイタスク一覧画面（S-5）" do
+    context "タスクが1件もない場合" do
+      it "空状態のメッセージとタスク作成ボタンが表示される" do
+        visit tasks_path
+
+        expect(page).to have_content("まだタスクがありません")
+        expect(page).to have_link("タスクを作る", href: root_path)
+      end
+    end
+
+    context "複数のタスクが登録されている場合" do
+      before do
+        # 1. 今日のタスク
+        user.tasks.create!(
+          title: "今日のタスク",
+          due_at: Time.current.end_of_day
+        )
+
+        # 2. 明日のタスク
+        user.tasks.create!(
+          title: "明日のタスク",
+          due_at: 1.day.from_now.noon
+        )
+
+        # 3. 期限なしタスク
+        user.tasks.create!(
+          title: "期限なしタスク",
+          due_at: nil
+        )
+
+        # 4. サブタスク付きタスク
+        parent = user.tasks.create!(
+          title: "サブタスク付きタスク",
+          due_at: 2.days.from_now.noon
+        )
+        parent.children.create!(user: user, title: "サブタスク1", status: :done)
+        parent.children.create!(user: user, title: "サブタスク2", status: :todo)
+      end
+
+      it "期限の近い順に並び、日付見出しが付き、期限なしは末尾にまとまり、進捗が表示される（AC-1, AC-2）" do
+        visit tasks_path
+
+        # 見出しが存在すること
+        expect(page).to have_content("今日")
+        expect(page).to have_content("明日")
+        expect(page).to have_content("期限なし")
+
+        # タスクが期限順（今日 → 明日 → 2日後 → 期限なし）に並んでいることを検証
+        today_pos = page.text.index("今日のタスク")
+        tomorrow_pos = page.text.index("明日のタスク")
+        subtasks_pos = page.text.index("サブタスク付きタスク")
+        no_due_pos = page.text.index("期限なしタスク")
+
+        expect(today_pos).to be < tomorrow_pos
+        expect(tomorrow_pos).to be < subtasks_pos
+        expect(subtasks_pos).to be < no_due_pos
+
+        # 進捗表示の検証（サブタスクあり：1/2 完了、なし：—）
+        expect(page).to have_content("1/2 完了")
+        expect(page).to have_content("—")
+      end
+    end
+  end
 end
