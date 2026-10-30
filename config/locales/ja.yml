@@ -11,6 +11,12 @@ ja:
       task:
         title: "タスク名"
         due_at: "期限"
+    errors:
+      models:
+        task:
+          attributes:
+            due_at:
+              cannot_be_in_the_past: "は現在より前の日時を設定できません"
 
   # 画面通知メッセージ（コントローラの flash メッセージ用）
   tasks:

@@ -124,4 +124,49 @@ RSpec.describe "タスク管理（作成・認可）" do
       end
     end
   end
+  # ------------------------------------------------------------
+  # 3. マイタスク一覧画面の表示（GET /tasks）
+  # ------------------------------------------------------------
+  describe "GET /tasks" do
+    context "未ログインの場合" do
+      it "ログイン画面へリダイレクトされる" do
+        get tasks_path
+
+        expect(response).to redirect_to(new_session_path)
+      end
+    end
+
+    context "ログイン済みの場合" do
+      let!(:other_user) do
+        User.create!(
+          name: "他ユーザー",
+          email_address: "other@example.com",
+          password: "password123",
+          terms_accepted_at: Time.current
+        )
+      end
+
+      # 自分のタスク
+      let!(:my_task) do
+        user.tasks.create!(title: "自分の親タスク", due_at: 1.day.from_now)
+      end
+
+      # 他人のタスク
+      let!(:other_task) do
+        other_user.tasks.create!(title: "他人の親タスク", due_at: 1.day.from_now)
+      end
+
+      before do
+        post session_path, params: { email_address: user.email_address, password: "password123" }
+      end
+
+      it "200 OK が返り、自分のタスクのみが表示され、他ユーザーのタスクは表示されない（AC-3）" do
+        get tasks_path
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("自分の親タスク")
+        expect(response.body).not_to include("他人の親タスク")
+      end
+    end
+  end
 end

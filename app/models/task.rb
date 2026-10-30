@@ -43,7 +43,7 @@ class Task < ApplicationRecord
     return if due_at.blank?
 
     if due_at < Time.current
-      errors.add(:due_at, "は現在より前の日時を設定できません")
+      errors.add(:due_at, :cannot_be_in_the_past)
     end
   end
 end
