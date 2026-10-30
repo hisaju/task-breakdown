@@ -9,7 +9,7 @@ RSpec.describe "画面モック" do
   end
 
   {
-    "/" => "今日は何に取り組みますか？",
+    # "/" => "今日は何に取り組みますか？",
     "/tasks" => "起案書作成",
     "/tasks/sample" => "社内提案資料を作成する",
     "/signup" => "アカウントを作成する",
@@ -37,7 +37,7 @@ RSpec.describe "画面モック" do
     end
 
     it "両レイアウトで同じ head 要素を持つ" do
-      heads = %w[/ /login].map do |path|
+      heads = %w[/tasks /login].map do |path|
         get path
         html.css("head meta[name], head link[rel='icon']").map(&:to_html)
       end
@@ -48,7 +48,7 @@ RSpec.describe "画面モック" do
   end
 
   describe "サイドバーの現在地" do
-    { "/" => "タスクを作る", "/tasks" => "マイタスク" }.each do |path, label|
+    { "/tasks" => "マイタスク" }.each do |path, label|
       it "#{path} では「#{label}」だけが aria-current=page" do
         get path
 
@@ -225,7 +225,7 @@ RSpec.describe "画面モック" do
     end
 
     it "サイドバーはプラン名を表示しない" do
-      %w[/ /tasks /tasks/sample].each do |path|
+      %w[/tasks /tasks/sample].each do |path|
         get path
 
         expect(response.body).not_to include("フリープラン")

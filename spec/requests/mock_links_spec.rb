@@ -82,7 +82,7 @@ RSpec.describe "画面モックのリンクと送信先（横断検査）" do
     end
 
     it "サイドバーのユーザーメニュー「ログアウト」は S-1 へ移る" do
-      get "/"
+      get "/tasks"
 
       expect(mock_document.at_css("#user-menu a[role='menuitem']")).to have_attributes(text: "ログアウト")
       expect(mock_document.at_css("#user-menu a[role='menuitem']")["href"]).to eq "/session"

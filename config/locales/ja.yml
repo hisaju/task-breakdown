@@ -1,4 +1,5 @@
 ja:
+  # モデルのカラム名（フォームのラベルやバリデーションエラー用）
   activerecord:
     attributes:
       user:
@@ -7,4 +8,9 @@ ja:
         password: "パスワード"
         password_confirmation: "パスワード（確認）"
         terms_accepted_at: "利用規約への同意"
-        
+
+  # 画面通知メッセージ（コントローラの flash メッセージ用）
+  tasks:
+    create:
+      success: "タスクを作成しました"
+      failure: "タスクの作成に失敗しました"

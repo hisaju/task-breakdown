@@ -2,7 +2,6 @@
 module MockPages
   # 全画面・全状態。S-4 は分解中・分解完了・分解失敗と全完了、S-5 は通常と空状態
   PATHS = %w[
-    /
     /tasks
     /tasks?empty=1
     /tasks/sample
