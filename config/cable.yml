@@ -10,9 +10,6 @@ test:
 
 production:
   adapter: solid_cable
-  connects_to:
-    database:
-      writing: cable
   polling_interval: 5.seconds
   message_retention: 1.day
   writer_batch_size: 4
