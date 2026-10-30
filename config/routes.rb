@@ -11,12 +11,4 @@ Rails.application.routes.draw do
   get "privacy" => "mocks#privacy", as: :privacy_mock
 
   get "up" => "rails/health#show", as: :rails_health_check
-
-  # --- ここから追加 ---
-  # 本番でのSolid Queue動作確認用の仮ルート（確認が終わったら削除してOKです）
-  get "/test_job", to: proc {
-    DummyJob.perform_later
-    [ 200, { "Content-Type" => "text/plain; charset=utf-8" }, [ "ジョブをエンキューしました！Renderのログを確認してください。" ] ]
-  }
-  # --- ここまで追加 ---
 end
