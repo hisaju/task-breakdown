@@ -106,4 +106,73 @@ RSpec.describe Task do
       expect(task).to be_manual
     end
   end
+
+  # ----------------------------------------------------------------
+  # 4. 完了・未完了の切り替えメソッド（complete! / uncomplete!）
+  # ----------------------------------------------------------------
+  describe "完了・未完了の切り替え" do
+    let(:user) { create(:user) }
+    let(:task) { create(:task, user: user, status: :todo) }
+
+    describe "#complete!" do
+      it "ステータスが done になり、completed_at に現在時刻がセットされること" do
+        # 完了メソッドを呼ぶと、ステータスが done に変わり完了日時が記録される
+        task.complete!
+        expect(task.reload).to be_done
+        expect(task.completed_at).to be_present
+      end
+    end
+
+    describe "#uncomplete!" do
+      it "ステータスが todo に戻り、completed_at が nil になること" do
+        # 一度完了させた後、未完了に戻すと todo に戻り完了日時がクリアされる
+        task.complete!
+        task.uncomplete!
+        expect(task.reload).to be_todo
+        expect(task.completed_at).to be_nil
+      end
+    end
+  end
+
+  # ----------------------------------------------------------------
+  # 5. サブタスクとの完了状態の自動同期（sync_parent_status コールバック）
+  # ----------------------------------------------------------------
+  describe "親タスクとの完了自動同期（sync_parent_status）" do
+    let(:user) { create(:user) }
+    let(:parent_task) { create(:task, user: user, status: :todo) }
+
+    context "すべてのサブタスクが完了になった場合" do
+      it "親タスクが自動的に完了（done）になること" do
+        # 2つの子タスク（サブタスク）を作成
+        sub1 = create(:task, user: user, parent: parent_task, status: :todo)
+        sub2 = create(:task, user: user, parent: parent_task, status: :todo)
+
+        expect(parent_task.reload).to be_todo
+
+        # 1つ目だけ完了しても、まだ親タスクは未完了（todo）のまま
+        sub1.complete!
+        expect(parent_task.reload).to be_todo
+
+        # 2つ目（すべて）が完了すると、連動コールバックで親タスクも自動的に done になる
+        sub2.complete!
+        expect(parent_task.reload).to be_done
+        expect(parent_task.completed_at).to be_present
+      end
+    end
+
+    context "完了していた親タスクのサブタスクが1つでも未完了に戻った場合" do
+      it "親タスクが自動的に未完了（todo）に戻ること" do
+        # 初めから全完了状態のサブタスクを作成
+        sub1 = create(:task, user: user, parent: parent_task, status: :done)
+        sub2 = create(:task, user: user, parent: parent_task, status: :done)
+
+        expect(parent_task.reload).to be_done
+
+        # 1つのサブタスクを未完了に戻すと、連動して親タスクも todo に戻る
+        sub1.uncomplete!
+        expect(parent_task.reload).to be_todo
+        expect(parent_task.completed_at).to be_nil
+      end
+    end
+  end
 end
