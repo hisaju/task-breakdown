@@ -20,6 +20,9 @@ class Task < ApplicationRecord
   validates :title, presence: true, length: { maximum: 200 }
   validate :due_at_cannot_be_in_the_past, on: :create
 
+  # コールバック（サブタスク保存後に親タスクの状態を同期）
+  after_save :sync_parent_status, if: :parent_id?
+
   # スコープ
   # 親タスクのみ取得（parent_id が nil）
   scope :roots, -> { where(parent_id: nil) }
@@ -36,6 +39,15 @@ class Task < ApplicationRecord
     { completed: completed, total: total }
   end
 
+  # 完了・未完了の切り替えメソッド
+  def complete!
+    update!(status: :done, completed_at: Time.current)
+  end
+
+  def uncomplete!
+    update!(status: :todo, completed_at: nil)
+  end
+
   private
 
   # 期限は新規作成時に過去日時を指定不可（UC-1）
@@ -44,6 +56,17 @@ class Task < ApplicationRecord
 
     if due_at < Time.current
       errors.add(:due_at, :cannot_be_in_the_past)
+    end
+  end
+
+  # 親タスクの完了状態を同期する裏方メソッド
+  def sync_parent_status
+    return unless parent
+
+    if parent.children.all?(&:done?)
+      parent.update!(status: :done, completed_at: Time.current) unless parent.done?
+    else
+      parent.update!(status: :todo, completed_at: nil) unless parent.todo?
     end
   end
 end
