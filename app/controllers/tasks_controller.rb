@@ -9,9 +9,6 @@ class TasksController < ApplicationController
     # ログイン中ユーザーの親タスクを期限順で取得
     tasks = Current.user.tasks.roots.ordered_by_due.includes(:children)
 
-    # 「完了済みを表示」していない時は、未完了（todo）だけを取り出す
-    tasks = tasks.todo unless params[:show_completed] == "true"
-
     # 日付見出しごと（今日・明日・M/D・期限なし）にグループ化
     @grouped_tasks = tasks.group_by { |task| due_label(task.due_at, date_only: true) }
   end

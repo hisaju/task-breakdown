@@ -5,9 +5,7 @@ Rails.application.routes.draw do
   # 本実装（タスク機能）
   root "tasks#new"
 
-  resources :tasks, only: %i[index new create edit update destroy] do
-    resource :completion, only: %i[create destroy], module: :tasks
-  end
+  resources :tasks, only: %i[index new create edit update destroy]
 
   # 画面モック（段階的に移行中）
   # get "tasks" => "mocks#my_tasks", as: :my_tasks_mock
