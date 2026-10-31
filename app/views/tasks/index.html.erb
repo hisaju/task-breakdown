@@ -1,9 +1,9 @@
 <% content_for :title, "マイタスク | Tasklet" %>
 
-<div class="flex min-h-screen flex-col">
-  <header class="border-b border-line bg-white px-8 py-5">
+<div class="flex min-h-screen flex-col" data-controller="completed-filter">
+  <%= render "mocks/content_header" do %>
     <p class="text-[13px] font-semibold">マイタスク</p>
-  </header>
+  <% end %>
 
   <div class="mx-auto w-full max-w-[850px] px-4 pb-16 pt-[64px]">
     <p class="text-[11px] font-semibold tracking-[0.12em] text-brand-dot">MY TASKS</p>
@@ -18,8 +18,13 @@
       </div>
     <% else %>
       <% number = 0 %>
+      <%# 完了判定: サブタスクがあれば全件完了、サブタスクがなければ親タスク自身のステータスを参照 %>
+      <% done_of = ->(t) { t.progress ? (t.progress[:completed] == t.progress[:total]) : t.done? } %>
+
       <% @grouped_tasks.each do |group_label, tasks| %>
-        <section class="mt-10">
+        <% group_all_done = tasks.all? { |t| done_of.call(t) } %>
+        <%= tag.section class: "mt-10",
+                        data: { completed_filter_target: "group" }.merge(group_all_done ? { hidden_by_done: true } : {}) do %>
           <h2 class="mb-3 flex items-center gap-2 text-[11px] font-semibold text-muted">
             <% if group_label != DueDateHelper::NO_DUE_LABEL %>
               <%= render "shared/icon", name: :calendar, class: "h-3.5 w-3.5" %>
@@ -30,7 +35,9 @@
             <% tasks.each do |task| %>
               <% number += 1 %>
               <% progress = task.progress %>
-              <li class="relative flex items-center gap-4 rounded-xl border border-line bg-white px-5 py-5 transition hover:shadow-card has-[>a:focus-visible]:ring-2 has-[>a:focus-visible]:ring-brand-dot">
+              <% done = done_of.call(task) %>
+              <li class="relative flex items-center gap-4 rounded-xl border border-line bg-white px-5 py-5 transition hover:shadow-card has-[>a:focus-visible]:ring-2 has-[>a:focus-visible]:ring-brand-dot"
+                  data-done="<%= done %>" <%= "data-hidden-by-done" if done %>>
                 <%= link_to task_detail_mock_path(title: task.title, due: task.due_at&.strftime("%Y-%m-%dT%H:%M") || ""),
                             class: "group flex min-w-0 flex-1 items-center gap-6 rounded-lg focus-visible:ring-0 focus-visible:outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']" do %>
                   <div class="flex-1 min-w-0">
@@ -39,7 +46,9 @@
                         <%= render "shared/icon", name: :calendar, class: "h-3 w-3" %><%= due_time_tag(task.due_at) %>
                       </span>
                     </div>
-                    <p class="mt-2.5 font-serif text-[17px] font-bold group-hover:text-brand"><%= task.title %></p>
+                    <p class="<%= class_names("mt-2.5 font-serif text-[17px] font-bold group-hover:text-brand", "text-muted line-through": done) %>">
+                      <%= task.title %>
+                    </p>
                   </div>
 
                   <div class="w-40 shrink-0 text-right">
@@ -52,12 +61,22 @@
 
                   <%= render "shared/icon", name: :chevron_right, class: "h-4 w-4 shrink-0 text-subtle group-hover:text-brand" %>
                 <% end %>
+
+                <%# 行メニュー「…」に編集と削除のリンクを連携 %>
                 <%= render "shared/menu", id: "parent-task-menu-#{format('%02d', number)}", label: "「#{task.title}」のメニュー",
-                                          items: [ { label: "編集" }, { label: "削除", danger: true } ] %>
+                                          items: [
+                                            { label: "編集", href: edit_task_path(task) },
+                                            { label: "削除", href: task_path(task), method: :delete, data: { turbo_confirm: "本当に削除しますか？" }, danger: true }
+                                          ] %>
               </li>
             <% end %>
           </ul>
-        </section>
+        <% end %>
+      <% end %>
+
+      <%= tag.div class: "mt-10", data: { completed_filter_target: "empty" }, hidden: !@grouped_tasks.values.flatten.all? { |t| done_of.call(t) } do %>
+        <%= render "shared/empty_state", icon: :inbox, title: "表示できるタスクはありません",
+                                         body: "完了したタスクは「完了済みを表示」で確認できます。" %>
       <% end %>
     <% end %>
   </div>

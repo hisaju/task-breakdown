@@ -23,3 +23,8 @@ ja:
     create:
       success: "タスクを作成しました"
       failure: "タスクの作成に失敗しました"
+    update:
+      success: "タスクを更新しました"
+      failure: "タスクの更新に失敗しました"
+    destroy:
+      success: "タスクを削除しました"
