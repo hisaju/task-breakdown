@@ -18,9 +18,13 @@
       </div>
     <% else %>
       <% number = 0 %>
+      <%# 完了判定: サブタスクがあれば全件完了、サブタスクがなければ親タスク自身のステータスを参照 %>
+      <% done_of = ->(t) { t.progress ? (t.progress[:completed] == t.progress[:total]) : t.done? } %>
+
       <% @grouped_tasks.each do |group_label, tasks| %>
-        <%# グループ内の全タスクが完了（done?）なら見出しごと非表示にする初期属性を付与 %>
-        <%= tag.section class: "mt-10", data: { completed_filter_target: "group", hidden_by_done: (true if tasks.all?(&:done?)) } do %>
+        <% group_all_done = tasks.all? { |t| done_of.call(t) } %>
+        <%= tag.section class: "mt-10",
+                        data: { completed_filter_target: "group" }.merge(group_all_done ? { hidden_by_done: true } : {}) do %>
           <h2 class="mb-3 flex items-center gap-2 text-[11px] font-semibold text-muted">
             <% if group_label != DueDateHelper::NO_DUE_LABEL %>
               <%= render "shared/icon", name: :calendar, class: "h-3.5 w-3.5" %>
@@ -31,7 +35,7 @@
             <% tasks.each do |task| %>
               <% number += 1 %>
               <% progress = task.progress %>
-              <% done = task.done? %>
+              <% done = done_of.call(task) %>
               <li class="relative flex items-center gap-4 rounded-xl border border-line bg-white px-5 py-5 transition hover:shadow-card has-[>a:focus-visible]:ring-2 has-[>a:focus-visible]:ring-brand-dot"
                   data-done="<%= done %>" <%= "data-hidden-by-done" if done %>>
                 <%= link_to task_detail_mock_path(title: task.title, due: task.due_at&.strftime("%Y-%m-%dT%H:%M") || ""),
@@ -58,7 +62,7 @@
                   <%= render "shared/icon", name: :chevron_right, class: "h-4 w-4 shrink-0 text-subtle group-hover:text-brand" %>
                 <% end %>
 
-                <%# 行メニュー「…」に編集と削除のリンクを渡す %>
+                <%# 行メニュー「…」に編集と削除のリンクを連携 %>
                 <%= render "shared/menu", id: "parent-task-menu-#{format('%02d', number)}", label: "「#{task.title}」のメニュー",
                                           items: [
                                             { label: "編集", href: edit_task_path(task) },
@@ -70,8 +74,7 @@
         <% end %>
       <% end %>
 
-      <%# 全親タスクが完了済みとして隠れたときの空状態 %>
-      <%= tag.div class: "mt-10", data: { completed_filter_target: "empty" }, hidden: !@grouped_tasks.values.flatten.all?(&:done?) do %>
+      <%= tag.div class: "mt-10", data: { completed_filter_target: "empty" }, hidden: !@grouped_tasks.values.flatten.all? { |t| done_of.call(t) } do %>
         <%= render "shared/empty_state", icon: :inbox, title: "表示できるタスクはありません",
                                          body: "完了したタスクは「完了済みを表示」で確認できます。" %>
       <% end %>
